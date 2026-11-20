@@ -21,3 +21,8 @@ if (("${#PACKAGES[@]}" == 0)); then
 fi
 sudo apt-get update
 sudo apt-get install -y "${PACKAGES[@]}"
+
+# Ajuste opcional e não destrutivo do nome fd após instalar o perfil agents.
+if [[ "$PROFILE" == "agents" ]]; then
+  bash "$SCRIPT_DIR/setup-fd.sh"
+fi
