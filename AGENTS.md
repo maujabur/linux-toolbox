@@ -43,6 +43,7 @@ Antes de editar, leia os arquivos relacionados e preserve as convenções existe
 - Nunca adicione senhas, tokens, chaves privadas, certificados pessoais, arquivos `.env` reais, IDs internos, endereços privados de infraestrutura ou dados de usuários.
 - Não considere o `.gitignore` garantia de sigilo: revise o conteúdo antes de cada commit.
 - Não incorpore conteúdo sensível mesmo em exemplos, comentários, histórico de commits ou testes.
+- Não defina nome, e-mail, credenciais, assinatura de commits ou tokens do Git em `configs/git/`; esses dados ficam no `~/.gitconfig` do usuário.
 - Não altere a visibilidade do repositório nem publique informações fornecidas apenas para diagnóstico.
 
 ## Alterações e validação

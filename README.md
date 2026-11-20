@@ -10,7 +10,7 @@ cd linux-toolbox
 bash bootstrap.sh
 ```
 
-O menu permite instalar ferramentas, configurar aliases do Bash e o tmux, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra.
+O menu permite instalar ferramentas, configurar aliases do Bash, o tmux e o Git, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra.
 
 Todos os scripts que alteram o sistema aceitam `--dry-run`, que apenas mostra o que seria feito (sem criar diretórios, arquivos, backups nem executar `sudo`/`apt-get`). `bootstrap.sh --dry-run` aplica isso a todas as opções do menu.
 
@@ -45,6 +45,25 @@ O script lista os pacotes e pede confirmação `[s/N]` antes de rodar `apt-get`.
 
 > Leia os scripts antes de executá-los.
 
+### Configuração do Git
+
+```bash
+bash scripts/setup-git.sh [--dry-run]
+```
+
+Adiciona ao **topo** de `~/.gitconfig` (ou de `~/.config/git/config`, se for o único existente) um bloco `[include]` apontando para `configs/git/gitconfig`. Como no Git o que vem depois prevalece, as suas configurações existentes têm prioridade sobre as do repositório. Um backup com timestamp é criado antes, e o arquivo novo só substitui o original (por `rename`) depois de validado.
+
+O que o arquivo inclui:
+
+- aliases `st` (`status -sb`), `co`, `br`, `lg` (histórico compacto em grafo), `last` e `unstage`;
+- `init.defaultBranch = main`;
+- `pull.ff = only`: o `git pull` recusa um histórico divergido em vez de criar merge ou rebase sem perguntar;
+- `commit.verbose = true` e `branch.sort = -committerdate` (apenas exibição).
+
+**Não** define nome, e-mail, credenciais, assinatura de commits nem tokens: configure-os você mesmo em `~/.gitconfig`. Também não ativa `help.autocorrect`, `fetch.prune`, `rebase.autoStash` ou qualquer opção que altere silenciosamente operações destrutivas.
+
+Se o arquivo de configuração for um link simbólico, o script **não altera nada** (código de saída 2, `CONFLITO`) e mostra o comando manual. O include aponta para este clone; se movê-lo, refaça a configuração. Para reverter, use `restore.sh git`. Se o `~/.gitconfig` não existia antes, não há backup para restaurar: remova o arquivo.
+
 ### Backups e restauração
 
 Antes de alterar `~/.bashrc` ou `~/.config/tmux/tmux.conf`, os scripts criam `ARQUIVO.bak.AAAAMMDD_HHMMSS` (com sufixo `.1`, `.2`, ... se o nome já existir). Backups nunca são sobrescritos nem apagados.
@@ -52,7 +71,7 @@ Antes de alterar `~/.bashrc` ou `~/.config/tmux/tmux.conf`, os scripts criam `AR
 Para restaurar:
 
 ```bash
-bash scripts/restore.sh bash   # ou: tmux
+bash scripts/restore.sh bash   # ou: tmux, git
 bash scripts/restore.sh bash --backup ~/.bashrc.bak.20260101_120000
 bash scripts/restore.sh bash --dry-run
 ```
