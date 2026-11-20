@@ -69,6 +69,10 @@ bash tests/run.sh [filtro]
 
 Os testes são em Bash puro e não alteram a máquina: usam `HOME` temporário e simulam `sudo`, `apt-get` e `fdfind`. Verificam sintaxe, `shellcheck` e `shfmt -i 2 -ci` (quando instalados; `REQUIRE_LINT=1` os torna obrigatórios), permissões, idempotência, backups, `--dry-run` sem efeitos colaterais e a segurança da restauração. O workflow `.github/workflows/tests.yml` executa a suíte em pushes e pull requests.
 
+## Arquitetura
+
+A separação entre configurações pessoais, ajustes de sistema e perfis futuros está documentada em [docs/architecture.md](docs/architecture.md). Esse documento estabelece diretrizes, não funcionalidades já implementadas.
+
 ## Organização
 
 - `configs/`: configurações versionadas
