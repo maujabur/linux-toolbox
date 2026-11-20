@@ -14,6 +14,16 @@ Este repositório contém configurações pessoais e scripts reutilizáveis para
 
 Antes de editar, leia os arquivos relacionados e preserve as convenções existentes.
 
+## Ferramentas de trabalho dos agentes
+
+- O perfil `packages/agents.txt` instala utilitários de pesquisa e validação; não instala runtimes, Docker ou agentes de IA.
+- Prefira `rg` para localizar textos e referências e `fd` para localizar arquivos, quando disponíveis. Use `grep` e `find` como alternativas portáveis.
+- No Debian, o pacote `fd-find` fornece `fdfind`; o instalador do perfil tenta criar `~/.local/bin/fd` sem sobrescrever nada.
+- Use `jq` para JSON e `yq` para YAML, conferindo a sintaxe da implementação instalada. Não trate os dois comandos como equivalentes.
+- Prefira edições pequenas e contextualizadas: antes de editar, localize o trecho e verifique o resultado com `git diff`. Não use substituições globais com `sed` sem validar o escopo.
+- Para scripts Bash, execute `bash -n`, `shellcheck` e, se houver reformatação, confira o resultado do `shfmt`.
+- Não presuma que essas ferramentas estejam disponíveis em todo sistema; degrade de forma graciosa ou documente a dependência.
+
 ## Regras para scripts
 
 1. Use Bash nos scripts existentes, com `#!/usr/bin/env bash` e `set -euo pipefail`.
