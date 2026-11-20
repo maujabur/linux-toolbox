@@ -20,5 +20,8 @@ case "$choice" in
   5) bash "$SCRIPT_DIR/scripts/install-packages.sh" desktop ;;
   6) bash "$SCRIPT_DIR/scripts/install-packages.sh" agents ;;
   0) exit 0 ;;
-  *) echo "Opção inválida." >&2; exit 1 ;;
+  *)
+    echo "Opção inválida." >&2
+    exit 1
+    ;;
 esac

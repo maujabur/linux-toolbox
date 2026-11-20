@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Aliases pessoais para Bash
 alias la='ls -la'
 alias ll='ls -lh'
