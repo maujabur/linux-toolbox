@@ -7,9 +7,10 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 usage() {
-  echo "Uso: restore.sh bash|tmux [--backup ARQUIVO] [--dry-run] [--yes]"
+  echo "Uso: restore.sh bash|tmux|git [--backup ARQUIVO] [--dry-run] [--yes]"
   echo "  bash   restaura ~/.bashrc"
   echo "  tmux   restaura ~/.config/tmux/tmux.conf"
+  echo "  git    restaura ~/.gitconfig (ou o config do XDG, se for o usado)"
   echo "Sem --backup, usa o backup mais recente (ALVO.bak.AAAAMMDD_HHMMSS[.N])."
   echo "O estado atual é copiado para um novo backup antes da restauração."
   echo "  --dry-run  apenas informa o que seria feito"
@@ -35,7 +36,7 @@ while (($#)); do
       ;;
     -*) die "Opção desconhecida: $1" ;;
     *)
-      [[ -z "$WHAT" ]] || die "Informe apenas um alvo (bash ou tmux)."
+      [[ -z "$WHAT" ]] || die "Informe apenas um alvo (bash, tmux ou git)."
       WHAT="$1"
       ;;
   esac
@@ -45,6 +46,7 @@ done
 case "$WHAT" in
   bash) TARGET="$HOME/.bashrc" ;;
   tmux) TARGET="$HOME/.config/tmux/tmux.conf" ;;
+  git) TARGET="$(git_global_config_path)" ;;
   *)
     usage >&2
     exit 1

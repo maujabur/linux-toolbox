@@ -113,3 +113,39 @@ test_restore_tmux_replaces_symlink_safely() {
   links="$(find "$HOME_DIR/.config/tmux" -name 'tmux.conf.bak.*' -type l | wc -l)"
   assert_eq "link anterior preservado como backup" "1" "$links"
 }
+
+test_restore_git_round_trip() {
+  new_env
+  local original g="$HOME_DIR/.gitconfig"
+  printf '[user]\n\tname = Fulano\n' >"$g"
+  original="$(cat "$g")"
+  in_env bash "$ROOT/scripts/setup-git.sh" >/dev/null
+  check "setup-git alterou o arquivo" grep -q include "$g"
+  in_env bash "$ROOT/scripts/restore.sh" git --yes >/dev/null
+  assert_eq "restauração devolve o conteúdo original" "$original" "$(cat "$g")"
+  assert_eq "estado configurado preservado em backup" "1" "$(grep -l 'include' "$HOME_DIR"/.gitconfig.bak.* | wc -l)"
+}
+
+test_restore_git_uses_xdg_when_it_is_the_config() {
+  new_env
+  local x="$HOME_DIR/.config/git/config"
+  mkdir -p "$HOME_DIR/.config/git"
+  printf '[user]\n\tname = Xdg\n' >"$x"
+  in_env bash "$ROOT/scripts/setup-git.sh" >/dev/null
+  in_env bash "$ROOT/scripts/restore.sh" git --yes >/dev/null
+  assert_eq "XDG restaurado" "[user]
+	name = Xdg" "$(cat "$x")"
+  check "não cria ~/.gitconfig" test ! -e "$HOME_DIR/.gitconfig"
+}
+
+test_restore_git_dry_run_and_missing_backup() {
+  new_env
+  local rc=0 before
+  printf '[user]\n\tname = X\n' >"$HOME_DIR/.gitconfig"
+  in_env bash "$ROOT/scripts/restore.sh" git --yes >/dev/null 2>&1 || rc=$?
+  assert_eq "sem backup falha" "1" "$rc"
+  in_env bash "$ROOT/scripts/setup-git.sh" >/dev/null
+  before="$(snapshot "$HOME_DIR")"
+  in_env bash "$ROOT/scripts/restore.sh" git --dry-run >/dev/null
+  assert_eq "dry-run não altera HOME" "$before" "$(snapshot "$HOME_DIR")"
+}
