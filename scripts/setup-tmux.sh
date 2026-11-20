@@ -1,18 +1,49 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
+# shellcheck source=lib.sh source-path=SCRIPTDIR
+source "$SCRIPT_DIR/lib.sh"
+
+DRY_RUN=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    -h | --help)
+      echo "Uso: setup-tmux.sh [--dry-run]"
+      echo "Cria o link ~/.config/tmux/tmux.conf para configs/tmux/tmux.conf."
+      echo "Se já houver um arquivo ou link diferente, cria antes um backup com timestamp."
+      echo "O link aponta para este clone: não o mova nem apague depois."
+      echo "Com --dry-run, apenas informa o que seria feito."
+      exit 0
+      ;;
+    *) die "Opção desconhecida: $arg" ;;
+  esac
+done
+
 TARGET="$HOME/.config/tmux/tmux.conf"
 SOURCE="$REPO_DIR/configs/tmux/tmux.conf"
 
-mkdir -p "$(dirname "$TARGET")"
+[[ -f "$SOURCE" ]] || die "Configuração não encontrada: $SOURCE"
+
 if [[ -L "$TARGET" ]] && [[ "$(readlink "$TARGET")" == "$SOURCE" ]]; then
-  echo "tmux já configurado."
+  log "Já configurado: $TARGET -> $SOURCE"
   exit 0
 fi
-if [[ -e "$TARGET" || -L "$TARGET" ]]; then
-  mv -- "$TARGET" "$TARGET.bak.$(date +%Y%m%d_%H%M%S)"
+
+if ((DRY_RUN)); then
+  [[ -d "$(dirname "$TARGET")" ]] || log "[dry-run] Criaria o diretório $(dirname "$TARGET")"
+  if [[ -e "$TARGET" || -L "$TARGET" ]]; then
+    log "[dry-run] Criaria um backup de $TARGET em $TARGET.bak.<timestamp>"
+  fi
+  log "[dry-run] Criaria o link $TARGET -> $SOURCE"
+  exit 0
 fi
-ln -s "$SOURCE" "$TARGET"
-echo "Configuração do tmux vinculada: $TARGET"
+
+mkdir -p -- "$(dirname "$TARGET")"
+if [[ -e "$TARGET" || -L "$TARGET" ]]; then
+  backup="$(backup_copy "$TARGET")"
+  log "Backup criado: $backup"
+fi
+ln -sfn -- "$SOURCE" "$TARGET"
+log "Configuração do tmux vinculada: $TARGET"
