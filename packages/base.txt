@@ -1,0 +1,10 @@
+git
+curl
+wget
+tmux
+htop
+btop
+tree
+jq
+rsync
+unzip
