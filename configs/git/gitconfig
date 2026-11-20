@@ -1,0 +1,31 @@
+# linux-toolbox: configuração pessoal do Git, carregada via [include] no
+# ~/.gitconfig (colocada no topo, então as suas configurações têm prioridade).
+#
+# Este arquivo NÃO define identidade (nome, e-mail), credenciais, assinatura
+# de commits nem tokens. Configure-os no seu ~/.gitconfig:
+#   git config --global user.name  "Seu Nome"
+#   git config --global user.email "seu-email"
+
+[alias]
+	st = status -sb
+	co = checkout
+	br = branch
+	lg = log --graph --oneline --decorate
+	last = log -1 --stat
+	unstage = restore --staged --
+
+[init]
+	defaultBranch = main
+
+[pull]
+	# Recusa o pull quando o histórico divergiu, em vez de criar um merge ou
+	# rebase sem perguntar. Resolva explicitamente com merge ou rebase.
+	ff = only
+
+[commit]
+	# Mostra o diff no editor de mensagem do commit.
+	verbose = true
+
+[branch]
+	# Lista as branches da mais recente para a mais antiga (apenas exibição).
+	sort = -committerdate

@@ -13,6 +13,9 @@ PASS=0
 FAIL=0
 SKIP=0
 ENV_COUNT=0
+# Variáveis do ambiente real que poderiam desviar o Git/XDG para fora do HOME temporário.
+CLEAN_ENV=(-u XDG_CONFIG_HOME -u GIT_CONFIG_GLOBAL -u GIT_CONFIG_SYSTEM -u GIT_CONFIG_COUNT
+  -u GIT_DIR -u GIT_WORK_TREE GIT_CONFIG_NOSYSTEM=1)
 
 ok() {
   PASS=$((PASS + 1))
@@ -80,13 +83,13 @@ new_env() {
 
 # in_env comando...: executa com HOME e PATH simulados e sem entrada (stdin vazio).
 in_env() {
-  env HOME="$HOME_DIR" PATH="$FAKE_BIN:$PATH" FAKE_LOG="$CALL_LOG" "$@" </dev/null
+  env "${CLEAN_ENV[@]}" HOME="$HOME_DIR" PATH="$FAKE_BIN:$PATH" FAKE_LOG="$CALL_LOG" "$@" </dev/null
 }
 # in_env_input "texto" comando...: igual a in_env, mas com texto no stdin.
 in_env_input() {
   local input="$1"
   shift
-  printf '%b' "$input" | env HOME="$HOME_DIR" PATH="$FAKE_BIN:$PATH" FAKE_LOG="$CALL_LOG" "$@"
+  printf '%b' "$input" | env "${CLEAN_ENV[@]}" HOME="$HOME_DIR" PATH="$FAKE_BIN:$PATH" FAKE_LOG="$CALL_LOG" "$@"
 }
 
 # snapshot DIR: lista caminho, tipo, tamanho, modo, mtime e destino de links.

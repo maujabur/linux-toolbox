@@ -21,6 +21,17 @@ confirm() {
   [[ "$answer" =~ ^([sS]|[sS][iI][mM])$ ]]
 }
 
+# git_global_config_path: arquivo onde o Git grava a configuração pessoal.
+# É ~/.gitconfig, ou o arquivo do XDG quando só ele existe (como faz o Git).
+git_global_config_path() {
+  local xdg="${XDG_CONFIG_HOME:-$HOME/.config}/git/config"
+  if [[ ! -e "$HOME/.gitconfig" && ! -L "$HOME/.gitconfig" && (-e "$xdg" || -L "$xdg") ]]; then
+    printf '%s\n' "$xdg"
+  else
+    printf '%s\n' "$HOME/.gitconfig"
+  fi
+}
+
 # backup_copy CAMINHO: copia o arquivo (ou link) para CAMINHO.bak.AAAAMMDD_HHMMSS
 # e imprime o caminho criado. O nome é reservado de forma atômica (noclobber);
 # se já existir, acrescenta .1, .2, ... Nunca sobrescreve um backup anterior.
