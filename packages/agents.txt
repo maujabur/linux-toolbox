@@ -1,0 +1,13 @@
+# Ferramentas de terminal úteis para agentes de programação (Debian 13)
+ripgrep
+fd-find
+jq
+yq
+sed
+gawk
+patch
+diffutils
+findutils
+file
+shellcheck
+shfmt
