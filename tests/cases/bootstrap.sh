@@ -25,8 +25,8 @@ test_bootstrap_dry_run_makes_no_changes() {
   new_env
   local before
   before="$(snapshot "$HOME_DIR")"
-  in_env_input '1\n2\n3\n4\n5\n6\n0\n' bash "$ROOT/bootstrap.sh" --dry-run >/dev/null 2>&1
-  assert_eq "dry-run em todas as opções não altera HOME" "$before" "$(snapshot "$HOME_DIR")"
+  in_env_input '1\n2\n3\n4\n5\n6\n9\n0\n' bash "$ROOT/bootstrap.sh" --dry-run >/dev/null 2>&1
+  assert_eq "dry-run em todas as opções de configuração/instalação não altera HOME" "$before" "$(snapshot "$HOME_DIR")"
   assert_eq "dry-run em todas as opções não chama sudo/apt" "" "$(cat "$CALL_LOG")"
 }
 
@@ -48,4 +48,24 @@ test_bootstrap_install_asks_confirmation() {
   new_env
   in_env_input '3\nn\n0\n' bash "$ROOT/bootstrap.sh" >/dev/null 2>&1
   assert_eq "recusar a confirmação não chama apt" "" "$(cat "$CALL_LOG")"
+}
+
+test_bootstrap_git_option_configures_and_restores() {
+  new_env
+  printf '[user]\n\tname = Fulano\n' >"$HOME_DIR/.gitconfig"
+  local original
+  original="$(cat "$HOME_DIR/.gitconfig")"
+  in_env_input '9\n0\n' bash "$ROOT/bootstrap.sh" >/dev/null 2>&1
+  check "opção 9 inclui a configuração" grep -q 'include' "$HOME_DIR/.gitconfig"
+  assert_eq "opção 9 não chama sudo" "" "$(cat "$CALL_LOG")"
+  in_env_input '10\ns\n0\n' bash "$ROOT/bootstrap.sh" >/dev/null 2>&1
+  assert_eq "opção 10 restaura o original" "$original" "$(cat "$HOME_DIR/.gitconfig")"
+}
+
+test_bootstrap_git_dry_run_has_no_side_effects() {
+  new_env
+  local before
+  before="$(snapshot "$HOME_DIR")"
+  in_env_input '9\n10\n0\n' bash "$ROOT/bootstrap.sh" --dry-run >/dev/null 2>&1
+  assert_eq "dry-run das opções 9 e 10 não altera HOME" "$before" "$(snapshot "$HOME_DIR")"
 }

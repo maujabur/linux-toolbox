@@ -31,6 +31,8 @@ menu() {
   echo "6) Instalar ferramentas para agentes (usa sudo)"
   echo "7) Restaurar backup do ~/.bashrc"
   echo "8) Restaurar backup da configuração do tmux"
+  echo "9) Configurar Git (aliases e padrões seguros; não define identidade)"
+  echo "10) Restaurar backup da configuração do Git"
   echo "0) Sair"
 }
 
@@ -59,6 +61,8 @@ while true; do
     6) run_script install-packages.sh agents ;;
     7) run_script restore.sh bash ;;
     8) run_script restore.sh tmux ;;
+    9) run_script setup-git.sh ;;
+    10) run_script restore.sh git ;;
     0) exit 0 ;;
     *) echo "Opção inválida." >&2 ;;
   esac
