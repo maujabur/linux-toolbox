@@ -9,6 +9,7 @@ echo "2) Configurar tmux"
 echo "3) Instalar pacotes base"
 echo "4) Instalar pacotes de desenvolvimento"
 echo "5) Instalar pacotes de desktop"
+echo "6) Instalar ferramentas para agentes"
 echo "0) Sair"
 read -r -p "Escolha: " choice
 case "$choice" in
@@ -17,6 +18,7 @@ case "$choice" in
   3) bash "$SCRIPT_DIR/scripts/install-packages.sh" base ;;
   4) bash "$SCRIPT_DIR/scripts/install-packages.sh" development ;;
   5) bash "$SCRIPT_DIR/scripts/install-packages.sh" desktop ;;
+  6) bash "$SCRIPT_DIR/scripts/install-packages.sh" agents ;;
   0) exit 0 ;;
   *) echo "Opção inválida." >&2; exit 1 ;;
 esac
