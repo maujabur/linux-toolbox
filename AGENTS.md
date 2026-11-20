@@ -9,6 +9,8 @@ Este repositório contém configurações pessoais e scripts reutilizáveis para
 - `configs/`: arquivos de configuração versionados, sem dados privados.
 - `scripts/`: instaladores e ajustes independentes.
 - `packages/`: listas de pacotes APT, um pacote por linha.
+- `scripts/lib.sh`: funções compartilhadas (`log`, `die`, `confirm`, `backup_copy`); carregado com `source`, não é executável. Mantenha-o pequeno.
+- `tests/`: testes em Bash puro (`bash tests/run.sh`); novos casos vão em `tests/cases/*.sh` como funções `test_*`.
 - `bootstrap.sh`: menu de entrada; não deve fazer alterações sem a seleção do usuário.
 - `profiles/`: reservado para agrupamentos futuros; não presuma que já existam perfis implementados.
 
@@ -48,6 +50,7 @@ Antes de editar, leia os arquivos relacionados e preserve as convenções existe
 - Prefira alterações pequenas, isoladas e fáceis de reverter. Não reformate arquivos que não sejam relacionados à tarefa.
 - Ao adicionar uma função, atualize o README e o menu `bootstrap.sh` somente quando fizer sentido disponibilizá-la ali.
 - Valide a sintaxe com `bash -n` para cada script Bash alterado e, quando disponível, use `shellcheck`.
+- Scripts que alteram o sistema devem aceitar `--dry-run` sem nenhum efeito colateral (sem criar diretórios, arquivos ou backups, nem chamar `sudo`) e usar `backup_copy` de `scripts/lib.sh` para backups. Execute `bash tests/run.sh` antes de commitar; o estilo é `shfmt -i 2 -ci`.
 - Em testes, use diretórios temporários e evite modificar a máquina do operador. Não declare que testou no Debian, no KDE ou em hardware se não testou.
 - Descreva o que foi alterado, como testar, quais permissões são necessárias e como reverter.
 - Nunca faça push, merge, force-push ou outras alterações remotas sem autorização correspondente ao pedido do usuário.

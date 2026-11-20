@@ -10,7 +10,9 @@ cd linux-toolbox
 bash bootstrap.sh
 ```
 
-O menu permite instalar ferramentas, configurar aliases do Bash e configurar o tmux separadamente.
+O menu permite instalar ferramentas, configurar aliases do Bash e o tmux, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra.
+
+Todos os scripts que alteram o sistema aceitam `--dry-run`, que apenas mostra o que seria feito (sem criar diretórios, arquivos, backups nem executar `sudo`/`apt-get`). `bootstrap.sh --dry-run` aplica isso a todas as opções do menu.
 
 ### Ferramentas para agentes de programação
 
@@ -22,17 +24,57 @@ Também pode ser executada diretamente:
 bash scripts/install-packages.sh agents
 ```
 
-No Debian, o comando fornecido por `fd-find` se chama `fdfind`. Após instalar os pacotes, o perfil executa `scripts/setup-fd.sh`, que tenta criar um link `~/.local/bin/fd` para `fdfind`, sem substituir arquivos existentes. Para chamar `fd` diretamente, `~/.local/bin` precisa constar no `PATH`. Se não estiver, use `fdfind`.
+A disponibilidade desses 12 pacotes no repositório do Debian 13 foi conferida com `apt-cache policy` (sem instalar nada).
 
-O pacote Debian `yq` pode ter sintaxe diferente de outras implementações de `yq`. O perfil não instala os agentes de IA propriamente ditos.
+No Debian, o comando fornecido por `fd-find` se chama `fdfind`. Após instalar os pacotes, o perfil executa `scripts/setup-fd.sh`, que cria o link `~/.local/bin/fd` para `fdfind`, sem substituir arquivos existentes. Resultados possíveis:
 
-> Leia os scripts antes de executá-los. As operações que usam apt solicitam sudo.
+- código 0: link criado agora ou já configurado;
+- código 2: **conflito**, pois `~/.local/bin/fd` já existe e não é o link esperado. Nada é alterado e o `fd` não é configurado. Durante a instalação do perfil isso vira apenas um aviso.
+
+Para chamar `fd` diretamente, `~/.local/bin` precisa constar no `PATH`. Se não estiver, use `fdfind`.
+
+O pacote `yq` do Debian 13 (versão 3.x, de kislyuk) é um wrapper em Python para o `jq` e usa a sintaxe do `jq`. Ele **não** é o `yq` em Go (mikefarah), de sintaxe diferente. O perfil não instala os agentes de IA propriamente ditos.
+
+### Instalação de pacotes
+
+```bash
+bash scripts/install-packages.sh [--dry-run] [--yes] [perfil]
+```
+
+O script lista os pacotes e pede confirmação `[s/N]` antes de rodar `apt-get`. `--yes` dispensa a pergunta (uso não interativo). `sudo` é usado apenas nos comandos `apt-get`, e somente se o usuário não for root.
+
+> Leia os scripts antes de executá-los.
+
+### Backups e restauração
+
+Antes de alterar `~/.bashrc` ou `~/.config/tmux/tmux.conf`, os scripts criam `ARQUIVO.bak.AAAAMMDD_HHMMSS` (com sufixo `.1`, `.2`, ... se o nome já existir). Backups nunca são sobrescritos nem apagados.
+
+Para restaurar:
+
+```bash
+bash scripts/restore.sh bash   # ou: tmux
+bash scripts/restore.sh bash --backup ~/.bashrc.bak.20260101_120000
+bash scripts/restore.sh bash --dry-run
+```
+
+O script informa o backup selecionado (o mais recente, por padrão), pede confirmação `[s/N]` (ou `--yes`) e guarda o estado atual em um novo backup antes de substituí-lo. A troca usa `rename` atômico: se algo falhar antes dela, o arquivo original continua intacto.
+
+O link do tmux aponta para este clone; se mover ou apagar o clone, refaça a configuração ou restaure um backup.
+
+## Testes
+
+```bash
+bash tests/run.sh [filtro]
+```
+
+Os testes são em Bash puro e não alteram a máquina: usam `HOME` temporário e simulam `sudo`, `apt-get` e `fdfind`. Verificam sintaxe, `shellcheck` e `shfmt -i 2 -ci` (quando instalados; `REQUIRE_LINT=1` os torna obrigatórios), permissões, idempotência, backups, `--dry-run` sem efeitos colaterais e a segurança da restauração. O workflow `.github/workflows/tests.yml` executa a suíte em pushes e pull requests.
 
 ## Organização
 
 - `configs/`: configurações versionadas
 - `packages/`: listas de pacotes apt
-- `scripts/`: operações independentes
+- `scripts/`: operações independentes (`lib.sh` reúne as funções compartilhadas)
+- `tests/`: testes automatizados
 - `profiles/`: combinações por ambiente (futuro)
 
 ## Segurança
