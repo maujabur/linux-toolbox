@@ -5,7 +5,7 @@
 menu_prof() {
   local input="$1"
   shift
-  in_env_input "$input" env TOOLBOX_OS_RELEASE_FILE="$PROF_OS" TOOLBOX_DT_MODEL_FILE="$PROF_MODEL" \
+  in_env_input "$input" env TOOLBOX_TEST_OS_RELEASE_FILE="$PROF_OS" TOOLBOX_TEST_DT_MODEL_FILE="$PROF_MODEL" \
     bash "$ROOT/bootstrap.sh" "$@"
 }
 

@@ -13,9 +13,23 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 source "$SCRIPT_DIR/lib.sh"
 
 PROFILES_DIR="$REPO_DIR/profiles"
-# Usadas apenas pelos testes, para simular o sistema e o hardware.
-OS_RELEASE_FILE="${TOOLBOX_OS_RELEASE_FILE:-/etc/os-release}"
-MODEL_FILE="${TOOLBOX_DT_MODEL_FILE:-/proc/device-tree/model}"
+# Somente para testes: simulam o sistema e o hardware. Não são um recurso de
+# uso: quem as define contorna a verificação de requisitos. Por isso, enquanto
+# estiverem definidas, todo comando exibe um aviso destacado de simulação.
+OS_RELEASE_FILE="${TOOLBOX_TEST_OS_RELEASE_FILE:-/etc/os-release}"
+MODEL_FILE="${TOOLBOX_TEST_DT_MODEL_FILE:-/proc/device-tree/model}"
+SIMULATED=()
+[[ -z "${TOOLBOX_TEST_OS_RELEASE_FILE:-}" ]] || SIMULATED+=("TOOLBOX_TEST_OS_RELEASE_FILE=$TOOLBOX_TEST_OS_RELEASE_FILE")
+[[ -z "${TOOLBOX_TEST_DT_MODEL_FILE:-}" ]] || SIMULATED+=("TOOLBOX_TEST_DT_MODEL_FILE=$TOOLBOX_TEST_DT_MODEL_FILE")
+
+# announce_simulation: aviso destacado (stderr) quando os requisitos são simulados.
+announce_simulation() {
+  ((${#SIMULATED[@]} > 0)) || return 0
+  banner warn "SIMULAÇÃO ATIVA: os requisitos de sistema e hardware NÃO" \
+    "estão sendo lidos desta máquina. Variáveis em uso:" \
+    "${SIMULATED[@]/#/  }" \
+    "Se isto não é um teste, execute: unset TOOLBOX_TEST_OS_RELEASE_FILE TOOLBOX_TEST_DT_MODEL_FILE"
+}
 
 usage() {
   echo "Uso:"
@@ -214,7 +228,7 @@ print_plan() {
   [[ -z "$DESC" ]] || log "Descrição:  $DESC"
   if ((${#REQS[@]} > 0)); then
     reqs_text="${REQS[*]}"
-    log "Requisitos: ${reqs_text// /, } (atendidos)"
+    log "Requisitos: ${reqs_text// /, } (atendidos${SIMULATED[0]:+, SIMULADOS})"
   fi
   for step in "${STEPS[@]}"; do
     [[ "$step" == pacotes:* ]] && {
@@ -343,6 +357,7 @@ case "$CMD" in
     ;;
   list)
     (($# == 0)) || die "list não aceita argumentos."
+    announce_simulation
     do_list
     exit 0
     ;;
@@ -387,6 +402,7 @@ while (($#)); do
 done
 ((${#WITH_LIST[@]} == 0 || ${#ONLY_LIST[@]} == 0)) || die "Use --with ou --only, não os dois."
 
+announce_simulation
 load_profile "$NAME"
 UNMET="$(unmet_requirements)"
 if [[ -n "$UNMET" ]]; then

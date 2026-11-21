@@ -154,6 +154,8 @@ bash tests/run.sh [filtro]
 
 Os testes são em Bash puro e não alteram a máquina: usam `HOME` temporário e simulam `sudo`, `apt-get` e `fdfind`. Verificam sintaxe, `shellcheck` e `shfmt -i 2 -ci` (quando instalados; `REQUIRE_LINT=1` os torna obrigatórios), permissões, idempotência, backups, `--dry-run` sem efeitos colaterais e a segurança da restauração. O workflow `.github/workflows/tests.yml` executa a suíte em pushes e pull requests.
 
+Para simular o sistema e o hardware (por exemplo, um Raspberry Pi), os testes usam `TOOLBOX_TEST_OS_RELEASE_FILE` e `TOOLBOX_TEST_DT_MODEL_FILE`, que fazem o `profile.sh` ler arquivos falsos. **Não são um recurso de uso:** quem as define contorna a verificação de requisitos dos perfis. Por isso, enquanto estiverem definidas, todo comando do `profile.sh` mostra o aviso `SIMULAÇÃO ATIVA`; se aparecer fora de um teste, execute `unset TOOLBOX_TEST_OS_RELEASE_FILE TOOLBOX_TEST_DT_MODEL_FILE`.
+
 ## Arquitetura
 
 A separação entre configurações pessoais, ajustes de sistema e perfis futuros está documentada em [docs/architecture.md](docs/architecture.md). Esse documento estabelece diretrizes, não funcionalidades já implementadas.
