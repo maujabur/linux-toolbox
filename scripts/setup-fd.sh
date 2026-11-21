@@ -35,7 +35,7 @@ TARGET="$BIN_DIR/fd"
 SOURCE="$(command -v fdfind)"
 
 if [[ -L "$TARGET" && "$(readlink -f -- "$TARGET")" == "$(readlink -f -- "$SOURCE")" ]]; then
-  MSG=("Já configurado: $TARGET -> $SOURCE" "Nada foi alterado.")
+  MSG=("Já configurado: $TARGET -> $SOURCE" "Nada a fazer: o resultado desta opção já está em vigor.")
 elif [[ -e "$TARGET" || -L "$TARGET" ]]; then
   banner err "CONFLITO: $TARGET já existe" \
     "e não é um link para $SOURCE." \

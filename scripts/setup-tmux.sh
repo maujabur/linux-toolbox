@@ -27,7 +27,8 @@ SOURCE="$REPO_DIR/configs/tmux/tmux.conf"
 [[ -f "$SOURCE" ]] || die "Configuração não encontrada: $SOURCE"
 
 if [[ -L "$TARGET" ]] && [[ "$(readlink "$TARGET")" == "$SOURCE" ]]; then
-  banner ok "Já configurado: $TARGET -> $SOURCE" "Nada foi alterado."
+  banner ok "Já configurado: $TARGET -> $SOURCE" \
+    "Nada a fazer: o resultado desta opção já está em vigor."
   exit 0
 fi
 

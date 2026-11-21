@@ -150,3 +150,14 @@ test_banner_lines_fit_width() {
   check "há linhas para conferir" test "$n" -gt 20
   assert_eq "nenhuma linha de banner passa de 72 colunas" "0" "$too_long"
 }
+
+test_banner_already_configured_says_nothing_to_do() {
+  new_env
+  local script out
+  for script in setup-bash.sh setup-tmux.sh setup-git.sh setup-fd.sh; do
+    in_env bash "$ROOT/scripts/$script" >/dev/null 2>&1
+    out="$(in_env bash "$ROOT/scripts/$script" 2>&1)"
+    assert_contains "$script: segunda execução diz que não há o que fazer" "$out" "Nada a fazer: o resultado desta opção já está em vigor."
+    assert_not_contains "$script: não usa a frase ambígua" "$out" "Nada foi alterado."
+  done
+}

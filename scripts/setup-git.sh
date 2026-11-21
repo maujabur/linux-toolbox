@@ -45,7 +45,8 @@ if [[ -L "$TARGET" ]]; then
 fi
 
 if [[ -f "$TARGET" ]] && git config --file "$TARGET" --get-all include.path 2>/dev/null | grep -Fxq -- "$SOURCE"; then
-  banner ok "Já configurado: $TARGET inclui $SOURCE" "Nada foi alterado."
+  banner ok "Já configurado: $TARGET inclui $SOURCE" \
+    "Nada a fazer: o resultado desta opção já está em vigor."
   exit 0
 fi
 

@@ -42,6 +42,7 @@ test_update_already_up_to_date() {
   out="$(in_env bash "$CLONE/scripts/update.sh" 2>&1)" || rc=$?
   assert_eq "sai com 0" "0" "$rc"
   assert_contains "informa já atualizado" "$out" "Já atualizado"
+  assert_contains "explica que não há o que fazer" "$out" "Nada a fazer: o clone já está na versão mais recente."
 }
 
 test_update_applies_with_yes() {
@@ -114,6 +115,7 @@ test_update_ahead_and_diverged() {
   out="$(in_env bash "$CLONE/scripts/update.sh" --yes 2>&1)" || rc=$?
   assert_eq "commits locais à frente: sai com 0" "0" "$rc"
   assert_contains "informa que não há o que atualizar" "$out" "Nada a atualizar"
+  assert_contains "explica que não há versão nova" "$out" "Nada a fazer: não há versão nova a aplicar."
   assert_eq "HEAD inalterado" "$before" "$(head_of "$CLONE")"
   publish_new_version >/dev/null
   rc=0

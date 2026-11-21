@@ -27,7 +27,8 @@ SOURCE_LINE="$(printf '[[ -r %q ]] && source %q' "$ALIASES" "$ALIASES")"
 LEGACY_LINE="source \"$ALIASES\""
 
 if [[ -f "$BASHRC" ]] && { grep -Fqx -- "$SOURCE_LINE" "$BASHRC" || grep -Fqx -- "$LEGACY_LINE" "$BASHRC"; }; then
-  banner ok "Já configurado: aliases carregados em $BASHRC" "Nada foi alterado."
+  banner ok "Já configurado: aliases carregados em $BASHRC" \
+    "Nada a fazer: o resultado desta opção já está em vigor."
   exit 0
 fi
 

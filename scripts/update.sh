@@ -76,11 +76,12 @@ g fetch --quiet "$REMOTE" "$MERGE_REF" || die "Falha ao buscar atualizações em
 TARGET="$(g rev-parse FETCH_HEAD)"
 
 if [[ "$TARGET" == "$LOCAL" ]]; then
-  banner ok "Já atualizado: ${LOCAL:0:12}" "Nada foi alterado."
+  banner ok "Já atualizado: ${LOCAL:0:12}" \
+    "Nada a fazer: o clone já está na versão mais recente."
   exit 0
 elif g merge-base --is-ancestor "$TARGET" "$LOCAL"; then
   banner ok "Nada a atualizar: seus commits locais estão à frente do remoto." \
-    "Nada foi alterado."
+    "Nada a fazer: não há versão nova a aplicar."
   exit 0
 elif ! g merge-base --is-ancestor "$LOCAL" "$TARGET"; then
   banner err "CONFLITO: o histórico local e o do remoto divergiram." \
