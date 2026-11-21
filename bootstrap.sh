@@ -22,9 +22,32 @@ for arg in "$@"; do
   esac
 done
 
+# Identifica a revisão LOCAL do código (não diz nada sobre estar atualizado em
+# relação ao GitHub). Só lê o repositório: sem rede, sem gravar arquivos e sem
+# tocar no índice (--no-optional-locks). Preenche VERSION_LINES uma vez.
+VERSION_LINES=()
+collect_version() {
+  local rev="indisponível" date="indisponível" state="indisponível" info status
+  if [[ ! -e "$SCRIPT_DIR/.git" ]]; then
+    rev="indisponível (cópia sem .git)"
+  elif ! command -v git >/dev/null 2>&1; then
+    rev="indisponível (git não instalado)"
+  elif info="$(git --no-optional-locks -C "$SCRIPT_DIR" log -1 --format='%h %cs' 2>/dev/null)" && [[ -n "$info" ]]; then
+    rev="${info%% *}"
+    date="${info#* }"
+    if status="$(git --no-optional-locks -C "$SCRIPT_DIR" status --porcelain 2>/dev/null)"; then
+      if [[ -z "$status" ]]; then state="Limpo"; else state="Com alterações locais"; fi
+    fi
+  else
+    rev="indisponível (não foi possível ler o repositório git)"
+  fi
+  VERSION_LINES=("Revisão: $rev" "Data:    $date" "Estado:  $state")
+}
+
 menu() {
   echo
   echo "linux-toolbox${DRY_ARGS[*]:+ (dry-run)}"
+  printf '%s\n' "${VERSION_LINES[@]}"
   echo "1) Configurar aliases do Bash"
   echo "2) Configurar tmux"
   echo "3) Instalar pacotes base (usa sudo)"
@@ -133,6 +156,7 @@ run_update() {
   pause
 }
 
+collect_version
 while true; do
   menu
   if ! read -r -p "Escolha: " choice; then
