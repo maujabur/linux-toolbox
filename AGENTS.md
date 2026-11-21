@@ -37,6 +37,7 @@ Antes de editar, leia os arquivos relacionados e preserve as convenções existe
 7. Não use `curl | bash`, `wget | sh` ou execução de código remoto sem revisão explícita. Evite dependências desnecessárias.
 8. Para ajustes específicos de distribuição ou hardware, detecte e documente os requisitos; não suponha que todo Linux seja Debian, Raspberry Pi ou Wayland.
 9. Mantenha comentários e documentação em português claro. Use nomes de arquivos, opções e comandos que sigam as convenções do ecossistema.
+10. Ao substituir arquivos do usuário, crie os temporários em um diretório privado (`mktemp -d`) no mesmo diretório do destino e troque por `mv -fT` (rename atômico). Não use nomes previsíveis como `ARQUIVO.tmp.$$`; o `trap` deve remover apenas o que o próprio script criou.
 
 ## Segurança e privacidade
 
