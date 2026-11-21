@@ -84,7 +84,7 @@ if [[ "$PROFILE" == "agents" ]]; then
 fi
 
 if ((${FD_WARNING:-0})); then
-  banner warn "AVISO: pacotes do perfil $PROFILE instalados, mas o link fd NÃO foi configurado." \
+  banner warn "AVISO: pacotes instalados, mas o link fd NÃO foi configurado." \
     "Veja o CONFLITO acima; os pacotes foram instalados normalmente."
 else
   banner ok "Perfil $PROFILE instalado (${#PACKAGES[@]} pacotes)."

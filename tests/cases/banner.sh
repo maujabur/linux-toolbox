@@ -123,3 +123,30 @@ $BAR"
   assert_contains "restore: sucesso destacado" "$out" "$BAR
 Restaurado: $HOME_DIR/.bashrc"
 }
+
+test_banner_lines_fit_width() {
+  # Linhas sem caminhos (/tmp/...) devem caber na largura do banner (72).
+  local out line n=0 too_long=0
+  new_env
+  mkdir -p "$HOME_DIR/.config/tmux"
+  printf 'bak\n' >"$HOME_DIR/.bashrc.bak.20260101_000000"
+  printf 'atual\n' >"$HOME_DIR/.bashrc"
+  out="$(
+    in_env bash "$ROOT/scripts/setup-bash.sh" 2>&1
+    in_env bash "$ROOT/scripts/setup-tmux.sh" 2>&1
+    in_env bash "$ROOT/scripts/setup-git.sh" 2>&1
+    in_env bash "$ROOT/scripts/setup-fd.sh" 2>&1
+    in_env bash "$ROOT/scripts/restore.sh" bash --yes 2>&1
+    in_env bash "$ROOT/scripts/install-packages.sh" --yes desktop 2>&1
+  )"
+  while IFS= read -r line; do
+    [[ "$line" == */tmp/* ]] && continue
+    n=$((n + 1))
+    if ((${#line} > 72)); then
+      too_long=$((too_long + 1))
+      printf '  linha longa (%d): %s\n' "${#line}" "$line"
+    fi
+  done <<<"$out"
+  check "há linhas para conferir" test "$n" -gt 20
+  assert_eq "nenhuma linha de banner passa de 72 colunas" "0" "$too_long"
+}

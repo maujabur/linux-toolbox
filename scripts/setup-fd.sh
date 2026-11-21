@@ -37,7 +37,8 @@ SOURCE="$(command -v fdfind)"
 if [[ -L "$TARGET" && "$(readlink -f -- "$TARGET")" == "$(readlink -f -- "$SOURCE")" ]]; then
   MSG=("Já configurado: $TARGET -> $SOURCE" "Nada foi alterado.")
 elif [[ -e "$TARGET" || -L "$TARGET" ]]; then
-  banner err "CONFLITO: $TARGET já existe e não é um link para $SOURCE." \
+  banner err "CONFLITO: $TARGET já existe" \
+    "e não é um link para $SOURCE." \
     "Nada foi alterado e o nome fd NÃO foi configurado." \
     "Remova ou renomeie o arquivo e execute novamente."
   exit 2

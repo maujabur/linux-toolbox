@@ -94,4 +94,5 @@ if [[ -e "$TARGET" || -L "$TARGET" ]]; then
 fi
 mv -fT -- "$TMP" "$TARGET" || die "Falha ao substituir o alvo. Estado anterior preservado em ${saved:-<não havia>}."
 banner ok "Restaurado: $TARGET" "A partir de: $BACKUP" "" \
-  "PRÓXIMO PASSO: abra um novo terminal (ou recarregue a configuração) para aplicar."
+  "PRÓXIMO PASSO: abra um novo terminal ou recarregue" \
+  "a configuração para aplicar."

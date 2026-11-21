@@ -37,7 +37,8 @@ git config --file "$SOURCE" --list >/dev/null || die "Configuração inválida: 
 TARGET="$(git_global_config_path)"
 
 if [[ -L "$TARGET" ]]; then
-  banner err "CONFLITO: $TARGET é um link simbólico (talvez gerenciado por outra ferramenta)." \
+  banner err "CONFLITO: $TARGET é um link simbólico" \
+    "(talvez gerenciado por outra ferramenta)." \
     "Nada foi alterado. Adicione manualmente ao arquivo real:" \
     "  git config --file \"\$(readlink -f '$TARGET')\" --add include.path '$SOURCE'"
   exit 2
