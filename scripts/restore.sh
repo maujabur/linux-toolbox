@@ -82,12 +82,15 @@ confirm "Restaurar esse backup?" || {
 
 # Sequência segura: o alvo só é substituído por rename atômico, depois que a
 # cópia temporária e o backup do estado atual existirem. Se algo falhar antes,
-# o alvo continua intacto.
-TMP="$TARGET.restore.$$"
-cleanup() { rm -f -- "$TMP"; }
-trap cleanup EXIT
+# o alvo continua intacto. A cópia é feita em um diretório privado criado por
+# mktemp ao lado do alvo (mesmo sistema de arquivos): nenhum arquivo ou link
+# preexistente é reutilizado, e o trap remove apenas o que este script criou.
 mkdir -p -- "$(dirname "$TARGET")"
-cp -pP --remove-destination -- "$BACKUP" "$TMP" || die "Falha ao copiar o backup. O alvo não foi alterado."
+WORKDIR="$(mktemp -d -- "$TARGET.XXXXXX")" ||
+  die "Não foi possível criar um diretório temporário ao lado de $TARGET. O alvo não foi alterado."
+trap 'rm -rf -- "$WORKDIR"' EXIT
+TMP="$WORKDIR/restaurado"
+cp -pP -- "$BACKUP" "$TMP" || die "Falha ao copiar o backup. O alvo não foi alterado."
 if [[ -e "$TARGET" || -L "$TARGET" ]]; then
   saved="$(backup_copy "$TARGET")" || die "Falha ao preservar o estado atual. O alvo não foi alterado."
   log "Estado atual preservado em: $saved"

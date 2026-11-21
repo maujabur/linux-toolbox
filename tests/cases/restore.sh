@@ -14,7 +14,7 @@ test_restore_latest_backup_and_preserves_current() {
   local preserved
   preserved="$(grep -l '^atual$' "$HOME_DIR"/.bashrc.bak.* | head -n 1)"
   check "estado atual preservado em novo backup" test -n "$preserved"
-  assert_eq "sem arquivos temporários residuais" "" "$(find "$HOME_DIR" -name '*.restore.*')"
+  assert_eq "sem diretórios temporários residuais" "" "$(leftover_tmpdirs "$HOME_DIR")"
 }
 
 test_restore_orders_suffixes_numerically() {
@@ -73,7 +73,7 @@ test_restore_failure_keeps_original() {
   in_env bash "$ROOT/scripts/restore.sh" bash --yes --backup "$b.bak.20260101_000000" >/dev/null 2>&1 || rc=$?
   assert_eq "backup inválido falha" "1" "$rc"
   assert_eq "original intacto após falha" "atual" "$(cat "$b")"
-  assert_eq "sem temporários após falha" "" "$(find "$HOME_DIR" -name '*.restore.*')"
+  assert_eq "sem temporários após falha" "" "$(leftover_tmpdirs "$HOME_DIR")"
   # Backup ilegível (arquivo apontando para nada) também não destrói o original.
   rmdir "$b.bak.20260101_000000"
   ln -s /nao/existe "$b.bak.20260101_000000"

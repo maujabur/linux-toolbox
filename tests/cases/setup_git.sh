@@ -63,7 +63,7 @@ test_setup_git_preserves_existing_config() {
   assert_eq "pull.ff do usuário vence" "true" "$(git_home config --includes --global --get pull.ff)"
   assert_eq "demais aliases vêm do repositório" "checkout" "$(git_home config --includes --global --get alias.co)"
   assert_eq "permissões preservadas" "600" "$(stat -c %a "$HOME_DIR/.gitconfig")"
-  assert_eq "sem arquivos temporários" "" "$(find "$HOME_DIR" -name '*.new.*')"
+  assert_eq "sem diretórios temporários" "" "$(leftover_tmpdirs "$HOME_DIR")"
 }
 
 test_setup_git_dry_run_has_no_side_effects() {

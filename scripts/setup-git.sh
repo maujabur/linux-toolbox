@@ -61,11 +61,16 @@ if ((DRY_RUN)); then
   exit 0
 fi
 
-# Monta o novo arquivo ao lado do original e só o troca (rename atômico) depois
-# de validar e de guardar o backup; se algo falhar, o original fica intacto.
+# Monta o novo arquivo em um diretório privado criado por mktemp ao lado do
+# original (mesmo sistema de arquivos) e só o troca (rename atômico) depois de
+# validar e de guardar o backup; se algo falhar, o original fica intacto. O
+# diretório é novo e exclusivo, então nenhum arquivo ou link preexistente é
+# reutilizado, e o trap remove apenas o que este script criou.
 mkdir -p -- "$(dirname "$TARGET")"
-TMP="$TARGET.new.$$"
-trap 'rm -f -- "$TMP"' EXIT
+WORKDIR="$(mktemp -d -- "$TARGET.XXXXXX")" ||
+  die "Não foi possível criar um diretório temporário ao lado de $TARGET."
+trap 'rm -rf -- "$WORKDIR"' EXIT
+TMP="$WORKDIR/novo"
 if [[ -e "$TARGET" ]]; then
   cp -p -- "$TARGET" "$TMP"
   : >"$TMP"

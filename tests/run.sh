@@ -97,6 +97,12 @@ snapshot() {
   find "$1" -printf '%P|%y|%s|%m|%T@|%l\n' | LC_ALL=C sort
 }
 
+# leftover_tmpdirs DIR: lista diretórios temporários (NOME.XXXXXX) que sobraram
+# dos scripts, em qualquer nível de DIR.
+leftover_tmpdirs() {
+  find "$1" -type d -regextype posix-extended -regex '.*/[^/]+\.[A-Za-z0-9]{6}$'
+}
+
 for case_file in "$ROOT"/tests/cases/*.sh; do
   [[ -e "$case_file" ]] || continue
   # shellcheck source=/dev/null
