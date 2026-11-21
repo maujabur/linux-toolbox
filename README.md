@@ -10,7 +10,7 @@ cd linux-toolbox
 bash bootstrap.sh
 ```
 
-O menu permite instalar ferramentas, configurar aliases do Bash, o tmux e o Git, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra. Depois de cada operação o menu **pausa** (`Pressione Enter para voltar ao menu...`), para que o resultado não seja coberto pelo menu seguinte.
+O menu permite instalar ferramentas, configurar aliases do Bash, o tmux e o Git, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra. Depois de cada operação o menu **pausa** (`Enter = voltar ao menu, q = sair`), para que o resultado não seja coberto pelo menu seguinte; `q` encerra o script ali mesmo. As opções de restauração ficam no submenu **8) Restaurar backups...** (bash, tmux ou Git; `0` volta).
 
 O resultado final de cada script aparece em destaque, entre linhas de `=` (verde em sucesso, amarelo em aviso e vermelho em erro ou conflito), incluindo o **PRÓXIMO PASSO** quando houver um, como `source ~/.bashrc` depois de configurar os aliases. As cores só são usadas em terminal e podem ser desativadas com `NO_COLOR=1`.
 
@@ -65,6 +65,24 @@ O que o arquivo inclui:
 **Não** define nome, e-mail, credenciais, assinatura de commits nem tokens: configure-os você mesmo em `~/.gitconfig`. Também não ativa `help.autocorrect`, `fetch.prune`, `rebase.autoStash` ou qualquer opção que altere silenciosamente operações destrutivas.
 
 Se o arquivo de configuração for um link simbólico, o script **não altera nada** (código de saída 2, `CONFLITO`) e mostra o comando manual. O include aponta para este clone; se movê-lo, refaça a configuração. Para reverter, use `restore.sh git`. Se o `~/.gitconfig` não existia antes, não há backup para restaurar: remova o arquivo.
+
+### Atualizar este clone
+
+Opção **9** do menu, ou:
+
+```bash
+bash scripts/update.sh [--dry-run] [--yes]
+```
+
+Atualiza o clone a partir do remoto configurado (`origin`, normalmente o GitHub) com `git fetch` e `git merge --ff-only`. O script **não reescreve nem descarta nada**:
+
+- mostra o remoto, os commits novos e os arquivos alterados, e pede confirmação `[s/N]` (`--yes` dispensa). Leia as alterações antes de usar os scripts atualizados;
+- recusa (código 2, `CONFLITO`) se houver alterações locais não commitadas ou se o histórico local e o remoto divergirem; se só houver commits locais à frente, informa que não há o que atualizar;
+- `--dry-run` consulta o remoto com `git ls-remote` e não grava nada, nem dentro de `.git`;
+- usa o remoto que o clone já tem configurado; o endereço não está fixo no script;
+- ao terminar, mostra a versão anterior e o comando para voltar a ela. Pelo menu, o bootstrap encerra após uma atualização e pede para ser executado de novo.
+
+Exige rede e `git`, mas não `sudo`.
 
 ### Backups e restauração
 
