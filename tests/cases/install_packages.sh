@@ -10,7 +10,7 @@ test_install_dry_run_has_no_side_effects() {
   assert_eq "dry-run não altera HOME" "$before" "$(snapshot "$HOME_DIR")"
   assert_contains "dry-run lista os pacotes" "$out" "ripgrep"
   assert_contains "dry-run descreve o install" "$out" "[dry-run]"
-  assert_contains "dry-run do perfil agents menciona setup-fd" "$out" "setup-fd.sh"
+  assert_contains "dry-run da lista agents menciona setup-fd" "$out" "setup-fd.sh"
   assert_eq "dry-run não cria ~/.local" "" "$(find "$HOME_DIR" -mindepth 1)"
 }
 
@@ -49,7 +49,7 @@ test_install_yes_is_non_interactive() {
 test_install_agents_runs_fd_setup() {
   new_env
   in_env bash "$ROOT/scripts/install-packages.sh" -y agents >/dev/null 2>&1
-  assert_eq "perfil agents cria o link fd" "$FAKE_BIN/fdfind" "$(readlink "$HOME_DIR/.local/bin/fd")"
+  assert_eq "lista agents cria o link fd" "$FAKE_BIN/fdfind" "$(readlink "$HOME_DIR/.local/bin/fd")"
 }
 
 test_install_agents_fd_conflict_is_warning() {
@@ -65,8 +65,8 @@ test_install_agents_fd_conflict_is_warning() {
 
 test_install_rejects_bad_input() {
   new_env
-  check_not "perfil com caminho é rejeitado" in_env bash "$ROOT/scripts/install-packages.sh" -y ../packages/base
-  check_not "perfil inexistente é rejeitado" in_env bash "$ROOT/scripts/install-packages.sh" -y inexistente
+  check_not "lista com caminho é rejeitada" in_env bash "$ROOT/scripts/install-packages.sh" -y ../packages/base
+  check_not "lista inexistente é rejeitada" in_env bash "$ROOT/scripts/install-packages.sh" -y inexistente
   check_not "opção desconhecida é rejeitada" in_env bash "$ROOT/scripts/install-packages.sh" --nada
   check_not "dois perfis são rejeitados" in_env bash "$ROOT/scripts/install-packages.sh" -y base agents
   assert_eq "nenhuma chamada a apt/sudo" "" "$(cat "$CALL_LOG")"

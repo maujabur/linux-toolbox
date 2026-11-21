@@ -87,7 +87,7 @@ Git configurado"
   assert_contains "git: lembra de definir identidade sem defini-la" "$out" "git config --global user.name"
   out="$(in_env bash "$ROOT/scripts/install-packages.sh" --yes desktop 2>&1)"
   assert_contains "install: conclusão destacada" "$out" "$BAR
-Perfil desktop instalado (2 pacotes).
+Lista de pacotes desktop instalada (2 pacotes).
 $BAR"
   out="$(in_env bash "$ROOT/scripts/install-packages.sh" desktop 2>&1)" || true
   assert_contains "install: cancelamento destacado" "$out" "$BAR

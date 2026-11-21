@@ -6,8 +6,8 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 source "$SCRIPT_DIR/lib.sh"
 
 usage() {
-  echo "Uso: install-packages.sh [--dry-run] [--yes] [perfil]"
-  echo "Instala com apt-get os pacotes de packages/<perfil>.txt (padrão: base)."
+  echo "Uso: install-packages.sh [--dry-run] [--yes] [lista]"
+  echo "Instala com apt-get os pacotes de packages/<lista>.txt (padrão: base)."
   echo "  --dry-run  mostra o que seria feito, sem executar apt-get nem sudo"
   echo "  -y, --yes  não pede confirmação (execução não interativa)"
   echo "Usa sudo apenas nos comandos apt-get, e somente se o usuário não for root."
@@ -26,7 +26,7 @@ for arg in "$@"; do
       ;;
     -*) die "Opção desconhecida: $arg" ;;
     *)
-      [[ -z "$PROFILE" ]] || die "Informe apenas um perfil."
+      [[ -z "$PROFILE" ]] || die "Informe apenas uma lista de pacotes."
       PROFILE="$arg"
       ;;
   esac
@@ -35,7 +35,7 @@ PROFILE="${PROFILE:-base}"
 
 PACKAGE_FILE="$REPO_DIR/packages/$PROFILE.txt"
 if [[ ! "$PROFILE" =~ ^[a-z][a-z0-9_-]*$ ]] || [[ ! -f "$PACKAGE_FILE" ]]; then
-  die "Perfil inválido: $PROFILE"
+  die "Lista de pacotes inválida: $PROFILE"
 fi
 command -v apt-get >/dev/null || die "Este script exige Debian/Ubuntu com apt-get."
 
@@ -45,7 +45,7 @@ if (("${#PACKAGES[@]}" == 0)); then
   exit 0
 fi
 
-log "Perfil: $PROFILE (${#PACKAGES[@]} pacotes)"
+log "Lista de pacotes: $PROFILE (${#PACKAGES[@]} pacotes)"
 log "Pacotes: ${PACKAGES[*]}"
 log_free_space
 
@@ -72,7 +72,7 @@ confirm "Instalar esses pacotes com apt-get (exige privilégios)?" || {
 "${SUDO[@]}" apt-get update
 "${SUDO[@]}" apt-get install -y "${PACKAGES[@]}"
 
-# Ajuste opcional e não destrutivo do nome fd após instalar o perfil agents.
+# Ajuste opcional e não destrutivo do nome fd após instalar a lista agents.
 # Um conflito (código 2) não invalida a instalação dos pacotes: apenas avisa.
 if [[ "$PROFILE" == "agents" ]]; then
   rc=0
@@ -88,5 +88,5 @@ if ((${FD_WARNING:-0})); then
   banner warn "AVISO: pacotes instalados, mas o link fd NÃO foi configurado." \
     "Veja o CONFLITO acima; os pacotes foram instalados normalmente."
 else
-  banner ok "Perfil $PROFILE instalado (${#PACKAGES[@]} pacotes)."
+  banner ok "Lista de pacotes $PROFILE instalada (${#PACKAGES[@]} pacotes)."
 fi
