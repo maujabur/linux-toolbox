@@ -2,13 +2,68 @@
 
 Scripts e configurações reutilizáveis para máquinas Linux, inicialmente Debian 13.
 
-## Uso
+## Como obter o projeto
+
+Escolha conforme o que a máquina tem. Em qualquer caso, **leia os scripts antes de executar** e comece com `--dry-run`, que só mostra o que seria feito. O projeto não pede para executar código baixado direto da rede: você baixa, confere e só então roda.
+
+### A. Com git (recomendado)
 
 ```bash
 git clone https://github.com/maujabur/linux-toolbox.git
 cd linux-toolbox
+bash bootstrap.sh --dry-run    # mostra o que cada opção faria, sem alterar nada
 bash bootstrap.sh
 ```
+
+Um clone pode ser atualizado depois pela opção **9** do menu.
+
+### B. Sem git, mas com apt e internet: instalar o necessário
+
+No Debian (se você já for root, omita o `sudo`):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git
+```
+
+Depois siga o passo **A**. Se também faltar o `curl` (só necessário para o passo C), instale-o do mesmo jeito: `sudo apt-get install -y curl`.
+
+### C. Só com curl (sem git e sem poder instalar nada)
+
+```bash
+curl -fsSL https://github.com/maujabur/linux-toolbox/archive/refs/heads/main.tar.gz -o linux-toolbox.tar.gz
+tar xzf linux-toolbox.tar.gz
+cd linux-toolbox-main
+bash bootstrap.sh --dry-run
+bash bootstrap.sh
+```
+
+- Sem `curl`, use `wget -O linux-toolbox.tar.gz URL` com a mesma URL.
+- O comando só baixa um arquivo e o extrai; nada vindo da rede é executado. Os scripts já vêm com permissão de execução.
+- A pasta extraída **não é um clone git**: a opção 9 (atualizar) não funciona e mostra como obter um clone. Para passar a ter um clone, instale o git (passo B) e clone o repositório em outra pasta.
+
+### D. Máquina sem internet, a partir de outra da mesma rede
+
+Na máquina que já tem o `linux-toolbox.tar.gz` (por exemplo, baixado pelo passo C):
+
+```bash
+sha256sum linux-toolbox.tar.gz                  # anote o valor
+scp linux-toolbox.tar.gz user@192.168.1.10:~/   # troque usuário e IP
+ssh user@192.168.1.10 'sha256sum linux-toolbox.tar.gz && tar xzf linux-toolbox.tar.gz'
+```
+
+Os dois valores de `sha256sum` devem coincidir. Depois, no destino: `cd linux-toolbox-main && bash bootstrap.sh --dry-run`. Na primeira conexão, o SSH mostra a impressão digital do destino; confira antes de aceitar. Para várias máquinas, repita o `scp` e o `ssh` em um laço.
+
+Limites de uma máquina **sem internet**:
+
+- As opções que usam `apt` (instalar pacotes e perfis) só funcionam se houver um repositório apt acessível, como um espelho local.
+- As opções que apenas configuram (aliases do Bash, tmux, Git) funcionam, desde que `tmux` e `git` já estejam instalados.
+- Sem `.git`, não há atualização pelo menu: para atualizar, baixe um tarball novo e reenvie.
+- `rsync` também serve (`rsync -av --exclude .git pasta/ user@IP:~/linux-toolbox/`), mas precisa estar instalado nos dois lados; ele faz parte da lista `base`.
+
+## Uso
+
+Dentro da pasta do projeto, `bash bootstrap.sh` abre o menu.
 
 O menu permite instalar ferramentas, configurar aliases do Bash, o tmux e o Git, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra. Depois de cada operação o menu **pausa** (`Enter = voltar ao menu, q = sair`), para que o resultado não seja coberto pelo menu seguinte; `q` encerra o script ali mesmo. As opções de restauração ficam no submenu **8) Restaurar backups...** (bash, tmux ou Git; `0` volta).
 

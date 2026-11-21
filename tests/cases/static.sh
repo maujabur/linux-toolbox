@@ -64,3 +64,16 @@ test_static_references() {
     check "perfil existe: packages/$profile.txt" test -f "$ROOT/packages/$profile.txt"
   done < <(grep -oE 'run_script install-packages\.sh [a-z]+' "$ROOT/bootstrap.sh" | awk '{print $3}' | sort -u)
 }
+
+test_static_readme_urls_match_update_script() {
+  local repo tarball
+  repo="$(sed -n 's/^DEFAULT_REPO_URL="\(.*\)"$/\1/p' "$ROOT/scripts/update.sh")"
+  tarball="$(sed -n 's/^DEFAULT_TARBALL_URL="\(.*\)"$/\1/p' "$ROOT/scripts/update.sh")"
+  check "update.sh define as URLs padrão" test -n "$repo" -a -n "$tarball"
+  check "README cita a URL do clone usada pelo update.sh" grep -qF "$repo" "$ROOT/README.md"
+  check "README cita a URL do tarball usada pelo update.sh" grep -qF "$tarball" "$ROOT/README.md"
+  check "README cita a pasta extraída do tarball" grep -qF 'cd linux-toolbox-main' "$ROOT/README.md"
+  check_not "README não recomenda executar código baixado direto da rede" \
+    grep -E 'curl[^`]*\|[[:space:]]*(sudo[[:space:]]+)?(ba)?sh([[:space:]]|$)|wget[^`]*\|[[:space:]]*(sudo[[:space:]]+)?(ba)?sh([[:space:]]|$)' "$ROOT/README.md"
+  check "README cobre os quatro cenários" bash -c 'for s in "### A." "### B." "### C." "### D."; do grep -qF "$s" "$1" || exit 1; done' _ "$ROOT/README.md"
+}
