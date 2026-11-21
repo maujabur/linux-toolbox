@@ -20,3 +20,25 @@ jobs:
         env:
           REQUIRE_LINT: "1"
         run: bash tests/run.sh
+
+  # Mesmo conjunto de testes no sistema-alvo do projeto (Debian 13), em um
+  # contêiner limpo. Roda como usuário comum: como root, os testes que dependem
+  # de permissões de arquivo seriam pulados.
+  debian-13:
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    env:
+      LANG: C.UTF-8
+    steps:
+      # O git precisa existir antes do checkout (os testes usam git ls-files).
+      - name: Instalar dependências (somente no contêiner)
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git ca-certificates shellcheck shfmt tmux
+      - uses: actions/checkout@v4
+      - name: Criar usuário comum
+        run: |
+          useradd --create-home --shell /bin/bash tester
+          chown -R tester:tester "$GITHUB_WORKSPACE"
+      - name: Executar testes como usuário comum
+        run: runuser -u tester -- env HOME=/home/tester REQUIRE_LINT=1 bash tests/run.sh
