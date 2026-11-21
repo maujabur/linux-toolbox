@@ -12,6 +12,27 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 # shellcheck source=lib.sh source-path=SCRIPTDIR
 source "$SCRIPT_DIR/lib.sh"
 
+# Repositório padrão do projeto, usado só para orientar quem não tem um clone.
+DEFAULT_REPO_URL="https://github.com/maujabur/linux-toolbox.git"
+DEFAULT_TARBALL_URL="https://github.com/maujabur/linux-toolbox/archive/refs/heads/main.tar.gz"
+
+# not_a_clone: explica como obter um clone (ou o tarball) do repositório padrão.
+# Não baixa nem executa nada: apenas orienta.
+not_a_clone() {
+  banner err "ERRO: $REPO_DIR não é um clone git," \
+    "então a atualização não está disponível aqui." \
+    "" \
+    "Para obter um clone do repositório padrão:" \
+    "  sudo apt-get install -y git     (se o git não estiver instalado)" \
+    "  git clone $DEFAULT_REPO_URL" \
+    "" \
+    "Sem git, baixe o tarball e leia os scripts antes de usar:" \
+    "  curl -fsSL $DEFAULT_TARBALL_URL \\" \
+    "    -o linux-toolbox.tar.gz" \
+    "  tar xzf linux-toolbox.tar.gz"
+  exit 1
+}
+
 DRY_RUN=0
 ASSUME_YES=0
 for arg in "$@"; do
@@ -30,13 +51,15 @@ for arg in "$@"; do
   esac
 done
 
-command -v git >/dev/null 2>&1 || die "git não encontrado. Instale o pacote git (perfil base)."
+# Sem .git não há o que atualizar, mesmo que o git esteja ausente (ex.: pasta extraída de um tarball).
+[[ -e "$REPO_DIR/.git" ]] || not_a_clone
+command -v git >/dev/null 2>&1 ||
+  die "git não encontrado. Instale com: sudo apt-get install -y git"
 
 # git -C "$REPO_DIR" ...; --no-optional-locks evita que um simples "status" grave no .git.
 g() { git --no-optional-locks -C "$REPO_DIR" "$@"; }
 
-[[ "$(g rev-parse --show-toplevel 2>/dev/null || true)" == "$(cd -- "$REPO_DIR" && pwd -P)" ]] ||
-  die "$REPO_DIR não é a raiz de um clone git; a atualização não está disponível."
+[[ "$(g rev-parse --show-toplevel 2>/dev/null || true)" == "$(cd -- "$REPO_DIR" && pwd -P)" ]] || not_a_clone
 
 BRANCH="$(g symbolic-ref --short -q HEAD || true)"
 [[ -n "$BRANCH" ]] || die "O clone está em HEAD destacado; faça checkout de uma branch antes."

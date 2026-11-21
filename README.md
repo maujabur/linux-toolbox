@@ -125,6 +125,7 @@ Atualiza o clone a partir do remoto configurado (`origin`, normalmente o GitHub)
 - recusa (código 2, `CONFLITO`) se houver alterações locais não commitadas ou se o histórico local e o remoto divergirem; se só houver commits locais à frente, informa que não há o que atualizar;
 - `--dry-run` consulta o remoto com `git ls-remote` e não grava nada, nem dentro de `.git`;
 - usa o remoto que o clone já tem configurado; o endereço não está fixo no script;
+- se a pasta **não for um clone git** (por exemplo, extraída de um tarball, ou em uma máquina sem `git`), não tenta baixar nada: mostra como obter o repositório padrão, com `git clone https://github.com/maujabur/linux-toolbox.git` ou, sem `git`, com o comando `curl` do tarball e `tar xzf`;
 - ao terminar, mostra a versão anterior e o comando para voltar a ela. Pelo menu, o bootstrap encerra após uma atualização e pede para ser executado de novo.
 
 Exige rede e `git`, mas não `sudo`.

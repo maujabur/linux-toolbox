@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC2016
 # Testes de scripts/update.sh. Usam um remoto local temporário (repositório
 # bare) com uma cópia do projeto: não acessam a rede nem alteram este clone.
 
@@ -131,9 +132,17 @@ test_update_requires_git_clone_and_upstream() {
   local rc=0 out
   mkdir -p "$ENV_DIR/plain"
   cp -r "$ROOT/scripts" "$ENV_DIR/plain/scripts"
+  printf '#!/usr/bin/env bash\necho "curl $*" >>"$FAKE_LOG"\n' >"$FAKE_BIN/curl"
+  printf '#!/usr/bin/env bash\necho "wget $*" >>"$FAKE_LOG"\n' >"$FAKE_BIN/wget"
+  chmod +x "$FAKE_BIN/curl" "$FAKE_BIN/wget"
   out="$(in_env bash "$ENV_DIR/plain/scripts/update.sh" 2>&1)" || rc=$?
   assert_eq "fora de um clone git sai com 1" "1" "$rc"
-  assert_contains "explica que não é um clone" "$out" "não é a raiz de um clone git"
+  assert_contains "explica que não é um clone" "$out" "não é um clone git"
+  assert_contains "sugere clonar o repositório padrão" "$out" "git clone https://github.com/maujabur/linux-toolbox.git"
+  assert_contains "sugere o tarball sem git" "$out" "https://github.com/maujabur/linux-toolbox/archive/refs/heads/main.tar.gz"
+  assert_contains "sugere instalar o git" "$out" "sudo apt-get install -y git"
+  assert_eq "não baixa nem executa nada sozinho (curl/wget simulados não foram chamados)" "" "$(cat "$CALL_LOG")"
+  assert_eq "não cria nada na pasta" "" "$(find "$ENV_DIR/plain" -mindepth 1 -maxdepth 1 ! -name scripts)"
   make_clone
   git_t -C "$CLONE" branch --unset-upstream
   rc=0
@@ -151,4 +160,40 @@ test_update_missing_git_and_bad_option() {
   env HOME="$HOME_DIR" PATH="$minbin" "$minbin/bash" "$ROOT/scripts/update.sh" >/dev/null 2>&1 </dev/null || rc=$?
   assert_eq "git ausente sai com 1" "1" "$rc"
   check_not "opção desconhecida falha" in_env bash "$ROOT/scripts/update.sh" --nada
+}
+
+test_update_tarball_without_git_suggests_default_repo() {
+  # Cenário do Raspberry Pi sem git: pasta extraída de um tarball, PATH mínimo.
+  new_env
+  local rc=0 out minbin="$ENV_DIR/minbin"
+  mkdir -p "$ENV_DIR/plain" "$minbin"
+  cp -r "$ROOT/scripts" "$ENV_DIR/plain/scripts"
+  ln -s "$(command -v bash)" "$minbin/bash"
+  ln -s "$(command -v dirname)" "$minbin/dirname"
+  out="$(env HOME="$HOME_DIR" PATH="$minbin" "$minbin/bash" "$ENV_DIR/plain/scripts/update.sh" 2>&1 </dev/null)" || rc=$?
+  assert_eq "sem git e sem clone sai com 1" "1" "$rc"
+  assert_contains "orienta com o repositório padrão, não só 'git não encontrado'" "$out" "git clone https://github.com/maujabur/linux-toolbox.git"
+  assert_contains "mostra o comando do tarball" "$out" "curl -fsSL https://github.com/maujabur/linux-toolbox/archive/refs/heads/main.tar.gz"
+  assert_eq "HOME intacto" "" "$(find "$HOME_DIR" -mindepth 1)"
+}
+
+test_update_missing_git_in_a_clone_says_how_to_install() {
+  new_env
+  local rc=0 out minbin="$ENV_DIR/minbin"
+  mkdir -p "$minbin"
+  ln -s "$(command -v bash)" "$minbin/bash"
+  ln -s "$(command -v dirname)" "$minbin/dirname"
+  out="$(env HOME="$HOME_DIR" PATH="$minbin" "$minbin/bash" "$ROOT/scripts/update.sh" 2>&1 </dev/null)" || rc=$?
+  assert_eq "clone sem git instalado sai com 1" "1" "$rc"
+  assert_contains "diz como instalar o git" "$out" "sudo apt-get install -y git"
+}
+
+test_update_bootstrap_option_9_in_tarball_folder() {
+  new_env
+  local out
+  mkdir -p "$ENV_DIR/plain"
+  (cd "$ROOT" && git ls-files -co --exclude-standard -z | xargs -0 cp -p --parents -t "$ENV_DIR/plain")
+  out="$(in_env_input '9\n\n0\n' bash "$ENV_DIR/plain/bootstrap.sh" 2>&1)"
+  assert_contains "o menu mostra a orientação" "$out" "git clone https://github.com/maujabur/linux-toolbox.git"
+  assert_eq "o menu continua funcionando depois" "2" "$(grep -c 'Configurar aliases do Bash' <<<"$out")"
 }
