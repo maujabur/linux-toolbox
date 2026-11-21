@@ -41,7 +41,7 @@ command -v apt-get >/dev/null || die "Este script exige Debian/Ubuntu com apt-ge
 
 mapfile -t PACKAGES < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' "$PACKAGE_FILE")
 if (("${#PACKAGES[@]}" == 0)); then
-  log "Nenhum pacote listado em $PACKAGE_FILE"
+  banner ok "Nenhum pacote listado em $PACKAGE_FILE" "Nada foi feito."
   exit 0
 fi
 
@@ -53,6 +53,7 @@ if ((DRY_RUN)); then
   log "[dry-run] ${SUDO_TEXT}apt-get update"
   log "[dry-run] ${SUDO_TEXT}apt-get install -y ${PACKAGES[*]}"
   [[ "$PROFILE" != "agents" ]] || log "[dry-run] Em seguida executaria scripts/setup-fd.sh"
+  banner ok "[dry-run] Nenhuma alteração foi feita."
   exit 0
 fi
 
@@ -63,7 +64,7 @@ if ((EUID != 0)); then
 fi
 
 confirm "Instalar esses pacotes com apt-get (exige privilégios)?" || {
-  warn "Cancelado. Nada foi instalado."
+  banner warn "CANCELADO. Nada foi instalado."
   exit 1
 }
 
@@ -77,7 +78,14 @@ if [[ "$PROFILE" == "agents" ]]; then
   bash "$SCRIPT_DIR/setup-fd.sh" || rc=$?
   case "$rc" in
     0) ;;
-    2) warn "Aviso: pacotes instalados, mas o link fd NÃO foi configurado (conflito acima)." ;;
+    2) FD_WARNING=1 ;;
     *) exit "$rc" ;;
   esac
+fi
+
+if ((${FD_WARNING:-0})); then
+  banner warn "AVISO: pacotes do perfil $PROFILE instalados, mas o link fd NÃO foi configurado." \
+    "Veja o CONFLITO acima; os pacotes foram instalados normalmente."
+else
+  banner ok "Perfil $PROFILE instalado (${#PACKAGES[@]} pacotes)."
 fi

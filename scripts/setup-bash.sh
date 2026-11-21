@@ -27,7 +27,7 @@ SOURCE_LINE="$(printf '[[ -r %q ]] && source %q' "$ALIASES" "$ALIASES")"
 LEGACY_LINE="source \"$ALIASES\""
 
 if [[ -f "$BASHRC" ]] && { grep -Fqx -- "$SOURCE_LINE" "$BASHRC" || grep -Fqx -- "$LEGACY_LINE" "$BASHRC"; }; then
-  log "Já configurado: aliases carregados em $BASHRC"
+  banner ok "Já configurado: aliases carregados em $BASHRC" "Nada foi alterado."
   exit 0
 fi
 
@@ -38,6 +38,7 @@ if ((DRY_RUN)); then
     log "[dry-run] Criaria $BASHRC"
   fi
   log "[dry-run] Acrescentaria ao final de $BASHRC: $SOURCE_LINE"
+  banner ok "[dry-run] Nenhuma alteração foi feita."
   exit 0
 fi
 
@@ -48,4 +49,5 @@ else
   : >"$BASHRC"
 fi
 printf '\n# linux-toolbox: aliases pessoais\n%s\n' "$SOURCE_LINE" >>"$BASHRC"
-log "Aliases adicionados. Execute: source ~/.bashrc"
+banner ok "Aliases adicionados a $BASHRC." "" \
+  "PRÓXIMO PASSO: abra um novo terminal ou execute:" "  source ~/.bashrc"

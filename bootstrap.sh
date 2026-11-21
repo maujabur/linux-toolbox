@@ -2,6 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib.sh
+source "$SCRIPT_DIR/scripts/lib.sh"
 
 DRY_ARGS=()
 for arg in "$@"; do
@@ -36,13 +38,20 @@ menu() {
   echo "0) Sair"
 }
 
+# Pausa para que o resultado não seja coberto pelo menu seguinte.
+pause() {
+  printf 'Pressione Enter para voltar ao menu... ' >&2
+  read -r _ || true
+}
+
 # run_script SCRIPT [ARGS...]: uma falha não encerra o menu.
 run_script() {
   local rc=0
   bash "$SCRIPT_DIR/scripts/$1" "${@:2}" "${DRY_ARGS[@]}" || rc=$?
   if ((rc != 0)); then
-    echo "A operação terminou com código $rc." >&2
+    banner err "A operação terminou com código $rc." "Veja as mensagens acima."
   fi
+  pause
 }
 
 while true; do
@@ -64,6 +73,9 @@ while true; do
     9) run_script setup-git.sh ;;
     10) run_script restore.sh git ;;
     0) exit 0 ;;
-    *) echo "Opção inválida." >&2 ;;
+    *)
+      banner err "Opção inválida: $choice"
+      pause
+      ;;
   esac
 done

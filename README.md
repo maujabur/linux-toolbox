@@ -10,7 +10,9 @@ cd linux-toolbox
 bash bootstrap.sh
 ```
 
-O menu permite instalar ferramentas, configurar aliases do Bash, o tmux e o Git, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra.
+O menu permite instalar ferramentas, configurar aliases do Bash, o tmux e o Git, e restaurar backups, cada item separadamente. Ele volta ao menu após cada operação; `0` ou Ctrl+D encerra. Depois de cada operação o menu **pausa** (`Pressione Enter para voltar ao menu...`), para que o resultado não seja coberto pelo menu seguinte.
+
+O resultado final de cada script aparece em destaque, entre linhas de `=` (verde em sucesso, amarelo em aviso e vermelho em erro ou conflito), incluindo o **PRÓXIMO PASSO** quando houver um, como `source ~/.bashrc` depois de configurar os aliases. As cores só são usadas em terminal e podem ser desativadas com `NO_COLOR=1`.
 
 Todos os scripts que alteram o sistema aceitam `--dry-run`, que apenas mostra o que seria feito (sem criar diretórios, arquivos, backups nem executar `sudo`/`apt-get`). `bootstrap.sh --dry-run` aplica isso a todas as opções do menu.
 

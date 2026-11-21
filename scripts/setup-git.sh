@@ -37,14 +37,14 @@ git config --file "$SOURCE" --list >/dev/null || die "Configuração inválida: 
 TARGET="$(git_global_config_path)"
 
 if [[ -L "$TARGET" ]]; then
-  warn "CONFLITO: $TARGET é um link simbólico (talvez gerenciado por outra ferramenta)."
-  warn "Nada foi alterado. Adicione manualmente ao arquivo real:"
-  warn "  git config --file \"\$(readlink -f '$TARGET')\" --add include.path '$SOURCE'"
+  banner err "CONFLITO: $TARGET é um link simbólico (talvez gerenciado por outra ferramenta)." \
+    "Nada foi alterado. Adicione manualmente ao arquivo real:" \
+    "  git config --file \"\$(readlink -f '$TARGET')\" --add include.path '$SOURCE'"
   exit 2
 fi
 
 if [[ -f "$TARGET" ]] && git config --file "$TARGET" --get-all include.path 2>/dev/null | grep -Fxq -- "$SOURCE"; then
-  log "Já configurado: $TARGET inclui $SOURCE"
+  banner ok "Já configurado: $TARGET inclui $SOURCE" "Nada foi alterado."
   exit 0
 fi
 
@@ -55,6 +55,7 @@ if ((DRY_RUN)); then
   else
     log "[dry-run] Criaria $TARGET com: [include] path = $SOURCE"
   fi
+  banner ok "[dry-run] Nenhuma alteração foi feita."
   exit 0
 fi
 
@@ -80,4 +81,7 @@ if [[ -e "$TARGET" ]]; then
   log "Backup criado: $backup"
 fi
 mv -fT -- "$TMP" "$TARGET"
-log "Git configurado: $TARGET agora inclui $SOURCE"
+banner ok "Git configurado: $TARGET agora inclui $SOURCE" "" \
+  "Esta configuração não define nome nem e-mail. Se ainda não definiu:" \
+  "  git config --global user.name  \"Seu Nome\"" \
+  "  git config --global user.email \"seu-email\""

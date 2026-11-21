@@ -27,7 +27,7 @@ SOURCE="$REPO_DIR/configs/tmux/tmux.conf"
 [[ -f "$SOURCE" ]] || die "Configuração não encontrada: $SOURCE"
 
 if [[ -L "$TARGET" ]] && [[ "$(readlink "$TARGET")" == "$SOURCE" ]]; then
-  log "Já configurado: $TARGET -> $SOURCE"
+  banner ok "Já configurado: $TARGET -> $SOURCE" "Nada foi alterado."
   exit 0
 fi
 
@@ -37,6 +37,7 @@ if ((DRY_RUN)); then
     log "[dry-run] Criaria um backup de $TARGET em $TARGET.bak.<timestamp>"
   fi
   log "[dry-run] Criaria o link $TARGET -> $SOURCE"
+  banner ok "[dry-run] Nenhuma alteração foi feita."
   exit 0
 fi
 
@@ -46,4 +47,5 @@ if [[ -e "$TARGET" || -L "$TARGET" ]]; then
   log "Backup criado: $backup"
 fi
 ln -sfn -- "$SOURCE" "$TARGET"
-log "Configuração do tmux vinculada: $TARGET"
+banner ok "Configuração do tmux vinculada: $TARGET" "" \
+  "PRÓXIMO PASSO: em sessões tmux já abertas, execute:" "  tmux source-file ~/.config/tmux/tmux.conf"

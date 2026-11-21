@@ -3,8 +3,33 @@
 
 log() { printf '%s\n' "$*"; }
 warn() { printf '%s\n' "$*" >&2; }
+
+# banner TIPO LINHA...: destaca o resultado de uma operação entre linhas de "=".
+# TIPO: ok (stdout, verde), warn e err (stderr, amarelo e vermelho). As cores só
+# são usadas em terminal e quando NO_COLOR não está definida.
+banner() {
+  local kind="$1" bar color="" reset="" fd=1
+  shift
+  [[ "$kind" == ok ]] || fd=2
+  printf -v bar '%72s' ''
+  bar="${bar// /=}"
+  if [[ -t "$fd" && -z "${NO_COLOR:-}" ]]; then
+    case "$kind" in
+      ok) color=$'\033[1;32m' ;;
+      warn) color=$'\033[1;33m' ;;
+      *) color=$'\033[1;31m' ;;
+    esac
+    reset=$'\033[0m'
+  fi
+  {
+    printf '\n%s%s\n' "$color" "$bar"
+    printf '%s\n' "$@"
+    printf '%s%s\n\n' "$bar" "$reset"
+  } >&"$fd"
+}
+
 die() {
-  warn "Erro: $*"
+  banner err "ERRO: $*"
   exit 1
 }
 

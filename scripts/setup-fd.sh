@@ -27,8 +27,7 @@ for arg in "$@"; do
 done
 
 if ! command -v fdfind >/dev/null 2>&1; then
-  warn "Erro: fdfind não encontrado. Instale o pacote fd-find antes."
-  exit 1
+  die "fdfind não encontrado. Instale o pacote fd-find antes."
 fi
 
 BIN_DIR="$HOME/.local/bin"
@@ -36,21 +35,24 @@ TARGET="$BIN_DIR/fd"
 SOURCE="$(command -v fdfind)"
 
 if [[ -L "$TARGET" && "$(readlink -f -- "$TARGET")" == "$(readlink -f -- "$SOURCE")" ]]; then
-  log "Já configurado: $TARGET -> $SOURCE"
+  MSG=("Já configurado: $TARGET -> $SOURCE" "Nada foi alterado.")
 elif [[ -e "$TARGET" || -L "$TARGET" ]]; then
-  warn "CONFLITO: $TARGET já existe e não é um link para $SOURCE."
-  warn "Nada foi alterado e o nome fd NÃO foi configurado. Remova ou renomeie o arquivo e execute novamente."
+  banner err "CONFLITO: $TARGET já existe e não é um link para $SOURCE." \
+    "Nada foi alterado e o nome fd NÃO foi configurado." \
+    "Remova ou renomeie o arquivo e execute novamente."
   exit 2
 elif ((DRY_RUN)); then
   [[ -d "$BIN_DIR" ]] || log "[dry-run] Criaria o diretório $BIN_DIR"
   log "[dry-run] Criaria o link $TARGET -> $SOURCE"
+  MSG=("[dry-run] Nenhuma alteração foi feita.")
 else
   mkdir -p -- "$BIN_DIR"
   ln -s -- "$SOURCE" "$TARGET"
-  log "Criado: $TARGET -> $SOURCE"
+  MSG=("Criado: $TARGET -> $SOURCE")
 fi
 
 if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-  log "Atenção: $BIN_DIR não está no PATH desta sessão."
-  log "Adicione-o ao PATH do seu shell para executar fd diretamente."
+  MSG+=("" "ATENÇÃO: $BIN_DIR não está no PATH desta sessão."
+    "Adicione-o ao PATH do seu shell para executar fd diretamente.")
 fi
+banner ok "${MSG[@]}"

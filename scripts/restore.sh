@@ -71,11 +71,12 @@ fi
 
 if ((DRY_RUN)); then
   log "[dry-run] Restauraria $BACKUP em $TARGET"
+  banner ok "[dry-run] Nenhuma alteração foi feita."
   exit 0
 fi
 
 confirm "Restaurar esse backup?" || {
-  warn "Cancelado. Nada foi alterado."
+  banner warn "CANCELADO. Nada foi alterado."
   exit 1
 }
 
@@ -92,4 +93,5 @@ if [[ -e "$TARGET" || -L "$TARGET" ]]; then
   log "Estado atual preservado em: $saved"
 fi
 mv -fT -- "$TMP" "$TARGET" || die "Falha ao substituir o alvo. Estado anterior preservado em ${saved:-<não havia>}."
-log "Restaurado: $TARGET"
+banner ok "Restaurado: $TARGET" "A partir de: $BACKUP" "" \
+  "PRÓXIMO PASSO: abra um novo terminal (ou recarregue a configuração) para aplicar."
