@@ -36,7 +36,7 @@ test_static_shfmt() {
 test_static_modes() {
   local f
   for f in bootstrap.sh tests/run.sh scripts/install-packages.sh scripts/setup-bash.sh \
-    scripts/setup-fd.sh scripts/setup-tmux.sh scripts/restore.sh; do
+    scripts/setup-fd.sh scripts/setup-tmux.sh scripts/setup-git.sh scripts/restore.sh scripts/update.sh; do
     [[ -e "$ROOT/$f" ]] || continue
     check "executável: $f" test -x "$ROOT/$f"
   done
@@ -58,8 +58,9 @@ test_static_references() {
   local ref profile
   while read -r ref; do
     check "bootstrap referencia script existente: $ref" test -f "$ROOT/$ref"
-  done < <(grep -oE 'scripts/[a-z-]+\.sh' "$ROOT/bootstrap.sh" | sort -u)
+  done < <(grep -oE 'run_script [a-z-]+\.sh|scripts/[a-z-]+\.sh' "$ROOT/bootstrap.sh" | sed -e 's|^run_script |scripts/|' | sort -u)
+  check "bootstrap referencia update.sh" grep -q 'scripts/update.sh' "$ROOT/bootstrap.sh"
   while read -r profile; do
     check "perfil existe: packages/$profile.txt" test -f "$ROOT/packages/$profile.txt"
-  done < <(grep -oE 'install-packages\.sh" [a-z]+' "$ROOT/bootstrap.sh" | awk '{print $2}' | sort -u)
+  done < <(grep -oE 'run_script install-packages\.sh [a-z]+' "$ROOT/bootstrap.sh" | awk '{print $3}' | sort -u)
 }
