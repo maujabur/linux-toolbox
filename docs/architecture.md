@@ -1,6 +1,6 @@
 # Arquitetura do linux-toolbox
 
-Status: diretrizes de arquitetura e proposta de evolução, não especificação de funcionalidades já implementadas.
+Status: diretrizes de arquitetura e registro do que já está implementado. Cada seção indica o que existe hoje e o que ainda é apenas planejado (ajustes de sistema).
 
 ## Objetivo
 
@@ -29,7 +29,7 @@ Exemplos futuros: unidades systemd, regras udev, ajustes de boot, permissões US
 
 ## Perfis como composição, não duplicação
 
-Perfis futuros incluem `debian-desktop`, `debian-server` e `raspberry-pi`. Um perfil deve **selecionar e combinar** listas de pacotes e tarefas reutilizáveis, não copiar a implementação dos scripts.
+Os perfis `debian-desktop`, `debian-server` e `raspberry-pi-headless` já existem (ver "Estado da implementação dos perfis"). Um perfil deve **selecionar e combinar** listas de pacotes e tarefas reutilizáveis, não copiar a implementação dos scripts.
 
 Diretrizes:
 
@@ -41,26 +41,39 @@ Diretrizes:
 
 ## Estado da implementação dos perfis
 
-Os perfis foram implementados como arquivos de dados `profiles/NOME.conf` (seções `[perfil]`, `[pacotes]` e `[usuario]`, um componente por linha com seu nível), e não como subdiretórios. Quem os aplica é `scripts/profile.sh`, que compõe os scripts existentes, mostra o plano antes, separa passos `[sudo]` de passos `[usuário]`, aceita `--dry-run`, `--only`, `--with` e `--user-only`, e verifica o requisito de hardware/sistema. A árvore abaixo continua sendo ilustrativa para `system/`, que ainda não existe.
+Os perfis foram implementados como arquivos de dados `profiles/NOME.conf` (seções `[perfil]`, `[pacotes]` e `[usuario]`, um componente por linha com seu nível), e não como subdiretórios. Quem os aplica é `scripts/profile.sh`, que compõe os scripts existentes, mostra o plano antes, separa passos `[sudo]` de passos `[usuário]`, aceita `--dry-run`, `--only`, `--with` e `--user-only`, e verifica o requisito de hardware/sistema (`requer = debian, raspberry-pi`), sem opção para ignorá-lo. Os arquivos `.conf` são apenas dados: são lidos linha a linha, nunca executados. Ainda não há lista de pacotes própria de servidor, e os perfis não fazem nenhum ajuste de sistema.
 
-## Organização sugerida (futura)
+Para testar sem o hardware real, o `profile.sh` aceita `TOOLBOX_TEST_OS_RELEASE_FILE` e `TOOLBOX_TEST_DT_MODEL_FILE`. Essas variáveis contornam a verificação de requisitos; por isso, enquanto definidas, todo comando exibe o aviso `SIMULAÇÃO ATIVA`.
+
+## Organização
+
+Implementado:
 
 ```text
 linux-toolbox/
+├── bootstrap.sh         # menu seletivo
 ├── configs/             # arquivos de configuração pessoais
-├── packages/            # conjuntos reutilizáveis de pacotes
-├── scripts/             # tarefas independentes e biblioteca mínima
-├── profiles/            # composições declarativas por ambiente (futuro)
-│   ├── debian-desktop/
-│   ├── debian-server/
-│   └── raspberry-pi/
-└── system/              # ajustes privilegiados por assunto (futuro)
+├── docs/                # documentação (este arquivo)
+├── packages/            # listas de pacotes apt
+├── profiles/            # perfis de máquina: um arquivo .conf (dados) por perfil
+│   ├── debian-desktop.conf
+│   ├── debian-server.conf
+│   └── raspberry-pi-headless.conf
+├── scripts/             # tarefas independentes, profile.sh e biblioteca mínima (lib.sh)
+└── tests/               # testes em Bash puro
+```
+
+Planejado (ilustrativo, ainda não existe):
+
+```text
+linux-toolbox/
+└── system/              # ajustes privilegiados por assunto
     ├── systemd/
     ├── udev/
     └── boot/
 ```
 
-A árvore acima é **ilustrativa**; não criar diretórios vazios ou scripts fictícios apenas para corresponder ao desenho. O `bootstrap.sh` continua sendo a interface seletiva existente.
+O desenho de `system/` é **ilustrativo**; não criar diretórios vazios ou scripts fictícios apenas para corresponder a ele. O `bootstrap.sh` continua sendo a interface seletiva.
 
 ## Regras de evolução
 
@@ -68,14 +81,22 @@ A árvore acima é **ilustrativa**; não criar diretórios vazios ou scripts fic
 - Prefira mudanças pequenas, com testes próximos ao comportamento modificado e documentação suficiente para reprodução.
 - Para configurações pessoais, considere que links simbólicos para o clone deixam de funcionar se o repositório for movido.
 - Não altere `~/.gitconfig` ou identidade/autenticação Git (nome, email, credenciais, assinatura) sem escolha expressa. Em especial, não comite dados pessoais no repositório público.
-- Não adote GNU Stow, novos frameworks ou mecanismos de perfis sem demonstrar benefício concreto.
+- Arquivos temporários de scripts que substituem arquivos do usuário devem ser criados em um diretório privado (`mktemp -d`) no mesmo diretório do destino, para manter o `rename` atômico. Nunca use nomes previsíveis como `ARQUIVO.tmp.$$`: um arquivo ou link preexistente nesse caminho seria reutilizado, sobrescrito ou apagado. O `trap` deve remover apenas o que o próprio script criou.
+- Ganchos que simulam o ambiente em testes não são um recurso de uso: use o prefixo `TOOLBOX_TEST_` e exiba um aviso destacado enquanto estiverem ativos.
+- Não adote GNU Stow, novos frameworks ou outros mecanismos de perfis além de `profiles/*.conf` sem demonstrar benefício concreto.
 - Acompanhe decisões futuras no próprio projeto; este documento registra **princípios**, não autoriza implementação automática.
 
-## Próximas etapas discutidas
+## Etapas
 
-1. Configuração pessoal do Git, sem impor identidade, tokens ou política de autenticação.
-2. Perfis compostos por ambiente, com execução seletiva.
+Concluídas:
+
+1. Configuração pessoal do Git (`setup-git.sh`), sem impor identidade, tokens ou política de autenticação.
+2. Perfis compostos por ambiente, com execução seletiva (`profile.sh` e `profiles/*.conf`).
+
+Em aberto:
+
 3. Catálogo de ajustes de sistema (systemd, udev, boot), conforme casos reais.
 4. Integração opcional de clipboard do tmux e avaliação futura de GNU Stow.
+5. Lista de pacotes própria para servidor, quando houver itens concretos.
 
 Revisar este documento quando uma implementação estabelecer uma decisão diferente, indicando o motivo.
