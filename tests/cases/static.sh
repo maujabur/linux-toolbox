@@ -36,7 +36,7 @@ test_static_shfmt() {
 test_static_modes() {
   local f
   for f in bootstrap.sh tests/run.sh scripts/install-packages.sh scripts/setup-bash.sh \
-    scripts/setup-fd.sh scripts/setup-tmux.sh scripts/setup-git.sh scripts/restore.sh scripts/update.sh; do
+    scripts/setup-fd.sh scripts/setup-tmux.sh scripts/setup-git.sh scripts/restore.sh scripts/update.sh scripts/profile.sh; do
     [[ -e "$ROOT/$f" ]] || continue
     check "executável: $f" test -x "$ROOT/$f"
   done

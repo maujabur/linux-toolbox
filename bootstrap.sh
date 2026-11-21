@@ -34,6 +34,7 @@ menu() {
   echo "7) Configurar Git (aliases e padrões seguros; não define identidade)"
   echo "8) Restaurar backups..."
   echo "9) Atualizar este clone a partir do GitHub"
+  echo "10) Aplicar perfil de máquina..."
   echo "0) Sair"
 }
 
@@ -92,6 +93,30 @@ run_restore_menu() {
   esac
 }
 
+# Lista os perfis de profiles/ e executa o escolhido: o profile.sh mostra o
+# plano e pede confirmação antes de alterar qualquer coisa.
+profile_menu() {
+  local names=() f choice="" i
+  for f in "$SCRIPT_DIR"/profiles/*.conf; do
+    [[ -e "$f" ]] && names+=("$(basename "$f" .conf)")
+  done
+  echo
+  echo "Aplicar perfil de máquina (mostra o plano e pede confirmação):"
+  for i in "${!names[@]}"; do
+    echo "$((i + 1))) ${names[i]}"
+  done
+  echo "0) Voltar"
+  read -r -p "Escolha: " choice || return 0
+  if [[ "$choice" == 0 ]]; then
+    return 0
+  elif [[ "$choice" =~ ^[1-9][0-9]*$ ]] && ((choice <= ${#names[@]})); then
+    run_script profile.sh run "${names[choice - 1]}"
+  else
+    banner err "Opção inválida: $choice"
+    pause
+  fi
+}
+
 # A atualização pode trocar os próprios arquivos do menu: se a versão mudou,
 # encerra (sem pausa) e pede para executar o bootstrap de novo.
 run_update() {
@@ -125,6 +150,7 @@ while true; do
     7) run_script setup-git.sh ;;
     8) run_restore_menu ;;
     9) run_update ;;
+    10) profile_menu ;;
     0) exit 0 ;;
     *)
       banner err "Opção inválida: $choice"
