@@ -39,6 +39,10 @@ Diretrizes:
 4. Evitar executar tudo de uma só vez por padrão. Permitir executar componentes individualmente.
 5. Perfis não devem armazenar segredos nem configurações identificáveis de uma máquina.
 
+## Estado da implementação dos perfis
+
+Os perfis foram implementados como arquivos de dados `profiles/NOME.conf` (seções `[perfil]`, `[pacotes]` e `[usuario]`, um componente por linha com seu nível), e não como subdiretórios. Quem os aplica é `scripts/profile.sh`, que compõe os scripts existentes, mostra o plano antes, separa passos `[sudo]` de passos `[usuário]`, aceita `--dry-run`, `--only`, `--with` e `--user-only`, e verifica o requisito de hardware/sistema. A árvore abaixo continua sendo ilustrativa para `system/`, que ainda não existe.
+
 ## Organização sugerida (futura)
 
 ```text

@@ -18,7 +18,7 @@ Todos os scripts que alteram o sistema aceitam `--dry-run`, que apenas mostra o 
 
 ### Ferramentas para agentes de programação
 
-A opção **6 — Instalar ferramentas para agentes** instala o perfil `packages/agents.txt` com `ripgrep`, `fd-find`, `jq`, `yq`, `sed`, `gawk`, `patch`, `diffutils`, `findutils`, `file`, `shellcheck` e `shfmt`.
+A opção **6 — Instalar ferramentas para agentes** instala a lista `packages/agents.txt` com `ripgrep`, `fd-find`, `jq`, `yq`, `sed`, `gawk`, `patch`, `diffutils`, `findutils`, `file`, `shellcheck` e `shfmt`.
 
 Também pode ser executada diretamente:
 
@@ -28,19 +28,19 @@ bash scripts/install-packages.sh agents
 
 A disponibilidade desses 12 pacotes no repositório do Debian 13 foi conferida com `apt-cache policy` (sem instalar nada).
 
-No Debian, o comando fornecido por `fd-find` se chama `fdfind`. Após instalar os pacotes, o perfil executa `scripts/setup-fd.sh`, que cria o link `~/.local/bin/fd` para `fdfind`, sem substituir arquivos existentes. Resultados possíveis:
+No Debian, o comando fornecido por `fd-find` se chama `fdfind`. Após instalar a lista `agents`, o instalador executa `scripts/setup-fd.sh`, que cria o link `~/.local/bin/fd` para `fdfind`, sem substituir arquivos existentes. Resultados possíveis:
 
 - código 0: link criado agora ou já configurado;
-- código 2: **conflito**, pois `~/.local/bin/fd` já existe e não é o link esperado. Nada é alterado e o `fd` não é configurado. Durante a instalação do perfil isso vira apenas um aviso.
+- código 2: **conflito**, pois `~/.local/bin/fd` já existe e não é o link esperado. Nada é alterado e o `fd` não é configurado. Durante a instalação da lista isso vira apenas um aviso.
 
 Para chamar `fd` diretamente, `~/.local/bin` precisa constar no `PATH`. Se não estiver, use `fdfind`.
 
-O pacote `yq` do Debian 13 (versão 3.x, de kislyuk) é um wrapper em Python para o `jq` e usa a sintaxe do `jq`. Ele **não** é o `yq` em Go (mikefarah), de sintaxe diferente. O perfil não instala os agentes de IA propriamente ditos.
+O pacote `yq` do Debian 13 (versão 3.x, de kislyuk) é um wrapper em Python para o `jq` e usa a sintaxe do `jq`. Ele **não** é o `yq` em Go (mikefarah), de sintaxe diferente. A lista não instala os agentes de IA propriamente ditos.
 
 ### Instalação de pacotes
 
 ```bash
-bash scripts/install-packages.sh [--dry-run] [--yes] [perfil]
+bash scripts/install-packages.sh [--dry-run] [--yes] [lista]
 ```
 
 O script lista os pacotes e pede confirmação `[s/N]` antes de rodar `apt-get`. `--yes` dispensa a pergunta (uso não interativo). `sudo` é usado apenas nos comandos `apt-get`, e somente se o usuário não for root.
@@ -65,6 +65,51 @@ O que o arquivo inclui:
 **Não** define nome, e-mail, credenciais, assinatura de commits nem tokens: configure-os você mesmo em `~/.gitconfig`. Também não ativa `help.autocorrect`, `fetch.prune`, `rebase.autoStash` ou qualquer opção que altere silenciosamente operações destrutivas.
 
 Se o arquivo de configuração for um link simbólico, o script **não altera nada** (código de saída 2, `CONFLITO`) e mostra o comando manual. O include aponta para este clone; se movê-lo, refaça a configuração. Para reverter, use `restore.sh git`. Se o `~/.gitconfig` não existia antes, não há backup para restaurar: remova o arquivo.
+
+### Perfis de máquina
+
+Um perfil **combina** componentes que já existem (listas de pacotes e scripts de configuração); não duplica nenhum script. Estão em `profiles/*.conf`:
+
+| Perfil | Para | Requisito |
+|---|---|---|
+| `debian-desktop` | Debian com desktop KDE | Debian |
+| `debian-server` | Debian sem interface gráfica | Debian |
+| `raspberry-pi-headless` | Raspberry Pi sem desktop | Debian/Raspberry Pi OS em um Raspberry Pi (checado em `/proc/device-tree/model`) |
+
+```bash
+bash scripts/profile.sh list
+bash scripts/profile.sh show debian-desktop                 # só mostra o plano
+bash scripts/profile.sh run  debian-desktop                 # plano + confirmação [s/N]
+bash scripts/profile.sh run  debian-desktop --with agents   # inclui opcionais
+bash scripts/profile.sh run  debian-desktop --only git,tmux # só esses componentes
+bash scripts/profile.sh run  debian-desktop --user-only     # nada que use sudo
+bash scripts/profile.sh run  debian-desktop --dry-run
+```
+
+Também está no menu, opção **10**. O perfil mostra o plano antes (passos `[sudo]` de pacotes e passos `[usuário]` no seu `HOME`, mais o espaço livre em `/`) e só executa depois da confirmação. Os pacotes são instalados antes dos ajustes de usuário. Os passos continuam sendo os mesmos scripts, então mantêm backup, idempotência e `--dry-run`.
+
+- **Níveis:** `obrigatorio` e `recomendado` entram por padrão; `opcional` só com `--with NOME`. `--only` executa somente os componentes indicados, de qualquer nível.
+- **Falhas:** o perfil para no primeiro passo que falhar e informa o que foi concluído e o que ficou pendente. Um conflito (código 2) em um passo não impede os seguintes; no fim o perfil sai com código 2.
+- **Requisitos:** um perfil não se aplica se a máquina não atender (por exemplo, o do Raspberry Pi em outro hardware). Não há opção para forçar.
+- **O que não fazem:** os perfis não definem identidade do Git, não configuram SSH, serviços, rede nem boot (isso é ajuste de sistema, ver `docs/architecture.md`). Ainda não há lista de pacotes própria de servidor.
+
+Formato de um perfil (apenas dados, nunca executado; comentários com `#`):
+
+```ini
+[perfil]
+descricao = Debian com desktop KDE
+requer    = debian              # debian e/ou raspberry-pi, separados por vírgula
+
+[pacotes]                        # packages/NOME.txt, instalados com apt-get (sudo)
+base        = obrigatorio
+desktop     = recomendado
+agents      = opcional
+
+[usuario]                        # bash, tmux, git ou fd; só no seu HOME
+bash = recomendado
+```
+
+Para criar um perfil, copie um existente em `profiles/`; `profile.sh show NOME` valida o arquivo e aponta a linha de qualquer erro.
 
 ### Atualizar este clone
 
