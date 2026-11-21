@@ -71,3 +71,13 @@ test_install_rejects_bad_input() {
   check_not "dois perfis são rejeitados" in_env bash "$ROOT/scripts/install-packages.sh" -y base agents
   assert_eq "nenhuma chamada a apt/sudo" "" "$(cat "$CALL_LOG")"
 }
+
+test_install_shows_free_space() {
+  new_env
+  local out
+  out="$(in_env bash "$ROOT/scripts/install-packages.sh" --dry-run desktop)"
+  assert_contains "mostra o espaço livre antes de instalar" "$out" "Espaço livre em /: "
+  assert_eq "o espaço livre não gera chamadas a sudo/apt" "" "$(cat "$CALL_LOG")"
+  out="$(in_env_input 'n\n' bash "$ROOT/scripts/install-packages.sh" desktop 2>&1)" || true
+  assert_contains "aparece também antes da confirmação" "$out" "Espaço livre em /: "
+}

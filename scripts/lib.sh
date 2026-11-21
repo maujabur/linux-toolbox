@@ -46,6 +46,14 @@ confirm() {
   [[ "$answer" =~ ^([sS]|[sS][iI][mM])$ ]]
 }
 
+# log_free_space: mostra o espaço livre em / (onde o apt instala); não imprime
+# nada se o df não suportar --output.
+log_free_space() {
+  local free
+  free="$(df -h --output=avail / 2>/dev/null | awk 'NR==2 {print $1}' || true)"
+  [[ -z "$free" ]] || log "Espaço livre em /: $free"
+}
+
 # git_global_config_path: arquivo onde o Git grava a configuração pessoal.
 # É ~/.gitconfig, ou o arquivo do XDG quando só ele existe (como faz o Git).
 git_global_config_path() {

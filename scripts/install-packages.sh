@@ -47,6 +47,7 @@ fi
 
 log "Perfil: $PROFILE (${#PACKAGES[@]} pacotes)"
 log "Pacotes: ${PACKAGES[*]}"
+log_free_space
 
 if ((DRY_RUN)); then
   if ((EUID == 0)); then SUDO_TEXT=""; else SUDO_TEXT="sudo "; fi
